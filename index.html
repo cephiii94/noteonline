@@ -177,7 +177,7 @@
     </div>
     <!-- View Modal -->
     <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col" style="max-height: 90vh;">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col relative" style="max-height: 90vh;">
             <!-- View Modal Header -->
             <div class="flex-shrink-0 p-6 border-b border-slate-200">
                 <div class="flex justify-between items-start">
@@ -194,6 +194,10 @@
             </div>
             <!-- View Modal Content -->
             <div id="viewNoteContent" class="note-view-content text-slate-700 overflow-y-auto flex-1 p-6"></div>
+            <!-- Floating Edit Button -->
+            <button id="editFab" class="absolute bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" title="Edit Catatan">
+                <i class="fas fa-pencil-alt text-xl"></i>
+            </button>
         </div>
     </div>
     
@@ -426,10 +430,26 @@
 
             const tagsContainer = document.getElementById('viewNoteTags');
             tagsContainer.innerHTML = (note.tags || []).map(tag => `<span class="note-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${escapeHTML(tag)}</span>`).join('');
+            
+            // Set data-id for the floating edit button
+            document.getElementById('editFab').dataset.id = note.id;
+
             viewModal.classList.remove('hidden');
         }
         document.getElementById('closeView').addEventListener('click', () => viewModal.classList.add('hidden'));
         
+        // Event listener for the floating edit button
+        document.getElementById('editFab').addEventListener('click', (e) => {
+            const noteId = e.currentTarget.dataset.id;
+            if (noteId) {
+                const note = allNotes.find(n => n.id === noteId);
+                if (note) {
+                    viewModal.classList.add('hidden'); // Close view modal
+                    showEditModal(note); // Open edit modal
+                }
+            }
+        });
+
         // Close modals when clicking on the overlay
         [addModal, editModal, viewModal].forEach(modal => {
             modal.addEventListener('click', (e) => {
