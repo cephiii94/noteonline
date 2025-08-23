@@ -7,64 +7,167 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Quill.js Rich Text Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FD;
+        }
+        .sidebar {
+            background-color: #FFFFFF;
+            border-right: 1px solid #E5E9F2;
+        }
+        .note-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E9F2;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .note-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            border-color: #A8B8D8;
+        }
+        .active-link {
+            background-color: #EFF6FF;
+            color: #2563EB;
+            font-weight: 600;
+        }
+        .active-link i, .active-link span {
+            color: #2563EB;
+        }
+        .ql-editor {
+            min-height: 150px;
+        }
+        .note-tag {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+        /* Styling untuk konten Rich Text di View Modal */
+        .note-view-content p { margin-bottom: 1rem; }
+        .note-view-content ol, .note-view-content ul { margin-left: 1.5rem; margin-bottom: 1rem; list-style: revert; }
+        .note-view-content li { margin-bottom: 0.5rem; }
+        .note-view-content h1 { font-size: 2em; font-weight: bold; margin-bottom: 1rem; }
+        .note-view-content h2 { font-size: 1.5em; font-weight: bold; margin-bottom: 1rem; }
+        .note-view-content h3 { font-size: 1.17em; font-weight: bold; margin-bottom: 1rem; }
+        .note-view-content strong { font-weight: bold; }
+        .note-view-content em { font-style: italic; }
+        .note-view-content u { text-decoration: underline; }
     </style>
 </head>
-<body class="bg-blue-50 text-slate-800">
+<body class="relative md:flex h-screen overflow-hidden">
 
-    <div class="container mx-auto max-w-4xl p-4 sm:p-6 md:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl sm:text-5xl font-bold text-blue-800">Notonlen</h1>
-            <p class="text-blue-600 mt-2">Catatan Online Anda, Tersimpan Aman di Cloud</p>
-            <div id="userInfo" class="mt-4 text-sm text-slate-500 flex items-center justify-center gap-4">
-                <p id="userInfoDisplay"></p>
-                <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md text-xs transition">Logout</button>
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar w-64 flex-shrink-0 flex flex-col p-6 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+        <div class="text-2xl font-bold text-blue-800 mb-10">Notonlen</div>
+        <nav class="flex flex-col gap-2">
+            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Menu</p>
+            <a href="#" data-category="All" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50 active-link">
+                <i class="fas fa-grip-horizontal w-5 text-center text-slate-500"></i>
+                <span>Semua Catatan</span>
+            </a>
+        </nav>
+        <nav class="flex flex-col gap-2 mt-6">
+            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Kategori</p>
+            <a href="#" data-category="Personal" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
+                <span class="w-5 text-center">👤</span>
+                <span>Personal</span>
+            </a>
+            <a href="#" data-category="Bisnis" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
+                <span class="w-5 text-center">💼</span>
+                <span>Bisnis</span>
+            </a>
+            <a href="#" data-category="Proyek" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
+                <span class="w-5 text-center">🚀</span>
+                <span>Proyek</span>
+            </a>
+        </nav>
+        <div class="mt-auto text-center text-xs text-slate-400">
+            <p>&copy; 2025 Notonlen</p>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- Header -->
+        <header class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <button id="menu-toggle" class="md:hidden text-slate-600 hover:text-blue-600"><i class="fas fa-bars text-xl"></i></button>
+                <div class="relative hidden sm:block">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="search" id="searchInput" placeholder="Search..." class="w-full md:w-64 lg:w-96 pl-12 pr-4 py-2.5 bg-slate-100 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                </div>
             </div>
-            <div class="relative w-full max-w-md mx-auto mt-6">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="search" id="searchInput" placeholder="Cari catatan..." class="w-full pl-12 pr-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+            <div class="flex items-center gap-4">
+                <div id="userInfo" class="text-sm text-slate-600 text-right">
+                    <p class="font-semibold" id="userNameDisplay">Loading...</p>
+                    <p class="text-xs hidden sm:block" id="userEmailDisplay"></p>
+                </div>
+                <button id="logoutBtn" class="bg-red-100 hover:bg-red-200 text-red-600 font-semibold py-2 px-4 rounded-lg text-sm transition">Logout</button>
             </div>
         </header>
-        <div>
-            <div class="flex justify-between items-center mb-4">
-                 <h2 class="text-2xl font-semibold text-blue-700">Catatan Saya</h2>
+
+        <!-- Content Area -->
+        <div class="p-4 md:p-6 flex-1">
+             <div class="relative sm:hidden mb-4">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="search" id="mobileSearchInput" placeholder="Search..." class="w-full pl-12 pr-4 py-2.5 bg-slate-100 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
             </div>
-            <div id="notesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="flex justify-between items-center mb-6">
+                <div><h1 id="notesHeader" class="text-2xl font-bold text-slate-800">Semua Catatan</h1></div>
+                <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition">
+                    <i class="fas fa-plus"></i><span class="hidden sm:inline">Tambah Catatan</span>
+                </button>
+            </div>
+            <div id="notesList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <p id="loadingMessage" class="text-slate-500 col-span-full text-center">Memuat catatan...</p>
             </div>
         </div>
-    </div>
+    </main>
 
-    <button id="openAddModalBtn" class="fixed bottom-8 right-8 bg-blue-500 hover:bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="Buat Catatan Baru">
-        <i class="fas fa-plus text-2xl"></i>
-    </button>
-
-    <!-- Modal Tambah & Edit -->
-    <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative">
+    <!-- Modals -->
+    <!-- Add Modal -->
+    <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 relative">
             <h2 class="text-2xl font-semibold mb-4 text-blue-700">Buat Catatan Baru</h2>
             <form id="addNoteForm">
-                <div class="mb-4"><input type="text" id="noteTitle" placeholder="Judul Catatan..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required></div>
-                <div><textarea id="noteContent" placeholder="Tulis catatan Anda di sini..." rows="8" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required></textarea></div>
+                <input type="text" id="noteTitle" placeholder="Judul Catatan..." class="w-full px-4 py-3 mb-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required>
+                <div id="add-editor" class="mb-4"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <select id="noteCategory" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                        <option value="Personal">Personal</option>
+                        <option value="Bisnis">Bisnis</option>
+                        <option value="Proyek">Proyek</option>
+                    </select>
+                    <input type="text" id="noteTags" placeholder="Tags (dipisah koma)..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                </div>
                 <div class="flex justify-end gap-4 mt-6">
                     <button type="button" id="cancelAdd" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition">Batal</button>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan Catatan</button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan</button>
                 </div>
             </form>
         </div>
     </div>
-    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative">
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 relative">
             <h2 class="text-2xl font-semibold mb-4 text-blue-700">Edit Catatan</h2>
             <form id="editNoteForm">
                 <input type="hidden" id="editNoteId">
-                <div class="mb-4"><input type="text" id="editNoteTitle" placeholder="Judul Catatan" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required></div>
-                <div><textarea id="editNoteContent" placeholder="Isi Catatan" rows="8" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required></textarea></div>
+                <input type="text" id="editNoteTitle" placeholder="Judul Catatan" class="w-full px-4 py-3 mb-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required>
+                <div id="edit-editor" class="mb-4"></div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <select id="editNoteCategory" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                        <option value="Personal">Personal</option>
+                        <option value="Bisnis">Bisnis</option>
+                        <option value="Proyek">Proyek</option>
+                    </select>
+                    <input type="text" id="editNoteTags" placeholder="Tags (dipisah koma)..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                </div>
                 <div class="flex justify-end gap-4 mt-6">
                     <button type="button" id="cancelEdit" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition">Batal</button>
                     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan Perubahan</button>
@@ -72,86 +175,147 @@
             </form>
         </div>
     </div>
-
-    <!-- Firebase SDK -->
+    <!-- View Modal -->
+    <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col" style="max-height: 90vh;">
+            <!-- View Modal Header -->
+            <div class="flex-shrink-0 p-6 border-b border-slate-200">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 id="viewNoteTitle" class="text-2xl font-bold text-slate-800 mb-1"></h2>
+                        <p id="viewNoteDate" class="text-sm text-slate-400"></p>
+                    </div>
+                    <button id="closeView" class="text-slate-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-100 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="flex items-center gap-4 mt-4 text-sm">
+                    <span id="viewNoteCategory" class="font-semibold text-blue-600 px-3 py-1 bg-blue-100 rounded-full"></span>
+                    <div id="viewNoteTags" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+            <!-- View Modal Content -->
+            <div id="viewNoteContent" class="note-view-content text-slate-700 overflow-y-auto flex-1 p-6"></div>
+        </div>
+    </div>
+    
+    <!-- Quill.js Rich Text Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script type="module">
-        // Langkah 1: Impor auth dan db dari file konfigurasi terpusat
         import { auth, db } from './firebase-config.js';
-        
-        // Langkah 2: Impor fungsi-fungsi lain yang dibutuhkan halaman ini
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi dan inisialisasi sudah tidak ada di sini lagi!
-        
         setLogLevel('debug');
 
         let userId = null;
         let notesCollectionRef = null;
         let allNotes = [];
+        let currentCategory = "All";
+        let addEditor, editEditor;
 
-        // Kode lainnya tetap sama...
+        // --- AUTH & INITIALIZATION ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
-                document.getElementById('userInfoDisplay').textContent = `Masuk sebagai: ${user.email}`;
+                document.getElementById('userNameDisplay').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('userEmailDisplay').textContent = user.email;
                 setupNotesCollection();
                 loadNotes();
+                initializeEditors();
             } else {
                 window.location.href = 'login.html';
             }
         });
         
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth).catch((error) => console.error("Logout Error:", error));
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+
+        // --- UI & EVENT LISTENERS ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        menuToggle.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+        });
+        sidebarOverlay.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
         });
 
+        // --- RICH TEXT EDITOR SETUP ---
+        function initializeEditors() {
+            const toolbarOptions = [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['clean']
+            ];
+            addEditor = new Quill('#add-editor', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+            editEditor = new Quill('#edit-editor', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+        }
+
+        // --- NOTES LOGIC ---
         function setupNotesCollection() {
-            if (userId) {
-                const collectionPath = `/users/${userId}/notes`;
-                notesCollectionRef = collection(db, collectionPath);
-            }
+            if (userId) notesCollectionRef = collection(db, `/users/${userId}/notes`);
         }
 
         function loadNotes() {
             if (!notesCollectionRef) return;
-            const loadingMessage = document.getElementById('loadingMessage');
             onSnapshot(notesCollectionRef, (snapshot) => {
-                allNotes = snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
-                const searchTerm = document.getElementById('searchInput').value;
-                if (searchTerm) {
-                     document.getElementById('searchInput').dispatchEvent(new Event('input'));
-                } else {
-                    renderNotes(allNotes);
-                }
-                loadingMessage.style.display = 'none';
-            }, (error) => {
-                console.error("Error fetching notes:", error);
-                loadingMessage.textContent = 'Gagal memuat catatan.';
+                allNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                filterAndRenderNotes();
+                document.getElementById('loadingMessage').style.display = 'none';
             });
+        }
+
+        function filterAndRenderNotes() {
+            const searchTerm = (document.getElementById('searchInput').value || document.getElementById('mobileSearchInput').value).toLowerCase();
+            let filtered = allNotes;
+
+            if (currentCategory !== "All") {
+                filtered = filtered.filter(note => note.category === currentCategory);
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(note => 
+                    note.title.toLowerCase().includes(searchTerm) || 
+                    (note.plainText && note.plainText.toLowerCase().includes(searchTerm))
+                );
+            }
+            renderNotes(filtered);
         }
 
         function renderNotes(notesToRender) {
             const notesList = document.getElementById('notesList');
             notesList.innerHTML = ''; 
             if (notesToRender.length === 0) {
-                const searchTerm = document.getElementById('searchInput').value;
-                const message = searchTerm ? `Tidak ada catatan yang cocok dengan "${escapeHTML(searchTerm)}".` : "Anda belum memiliki catatan. Ayo buat satu!";
-                notesList.innerHTML = `<p class="text-slate-500 col-span-full text-center">${message}</p>`;
+                notesList.innerHTML = `<p class="text-slate-500 col-span-full text-center py-10">Tidak ada catatan ditemukan.</p>`;
             } else {
-                notesToRender.forEach(noteDoc => {
-                    const note = noteDoc.data;
-                    const noteId = noteDoc.id;
+                notesToRender.forEach(note => {
                     const noteElement = document.createElement('div');
-                    noteElement.className = 'bg-white p-5 rounded-xl shadow-md border border-blue-100 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300';
+                    noteElement.className = 'note-card rounded-xl p-5 flex flex-col justify-between';
+                    noteElement.dataset.id = note.id;
+                    
+                    const tagsHTML = (note.tags || []).map(tag => `<span class="note-tag text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">${escapeHTML(tag)}</span>`).join('');
+                    
+                    const dateToDisplay = note.updatedAt ? note.updatedAt.toDate() : note.createdAt.toDate();
+                    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                    const formattedDate = dateToDisplay.toLocaleDateString('id-ID', dateOptions);
+
                     noteElement.innerHTML = `
-                        <div>
-                            <h3 class="text-xl font-bold text-blue-800 mb-2 break-words">${escapeHTML(note.title)}</h3>
-                            <p class="text-slate-600 text-sm break-words whitespace-pre-wrap">${escapeHTML(note.content.substring(0, 100))}${note.content.length > 100 ? '...' : ''}</p>
+                        <div class="note-card-body">
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-sm font-semibold text-blue-600">${escapeHTML(note.category || 'Uncategorized')}</p>
+                                <p class="text-xs text-slate-400">${formattedDate}</p>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-2 break-words">${escapeHTML(note.title)}</h3>
+                            <p class="text-slate-600 text-sm break-words">${escapeHTML((note.plainText || '').substring(0, 100))}${ (note.plainText || '').length > 100 ? '...' : ''}</p>
                         </div>
-                        <div class="flex justify-end gap-2 mt-4 pt-4 border-t border-blue-100">
-                            <button data-id="${noteId}" class="edit-btn bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-1 px-3 rounded-md text-sm transition">Edit</button>
-                            <button data-id="${noteId}" class="delete-btn bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-3 rounded-md text-sm transition">Hapus</button>
+                        <div class="flex-grow"></div>
+                        <div class="pt-4 mt-4 border-t border-slate-100">
+                            <div class="flex flex-wrap gap-2 mb-4">${tagsHTML}</div>
+                            <div class="flex justify-end gap-2">
+                                <button data-id="${note.id}" class="edit-btn text-yellow-500 hover:text-yellow-600 w-8 h-8 rounded-full hover:bg-yellow-100 flex items-center justify-center transition"><i class="fas fa-pencil-alt"></i></button>
+                                <button data-id="${note.id}" class="delete-btn text-red-500 hover:text-red-600 w-8 h-8 rounded-full hover:bg-red-100 flex items-center justify-center transition"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                     `;
                     notesList.appendChild(noteElement);
@@ -159,78 +323,168 @@
             }
         }
         
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const filteredNotes = allNotes.filter(noteDoc => {
-                const note = noteDoc.data;
-                return note.title.toLowerCase().includes(searchTerm) || 
-                       note.content.toLowerCase().includes(searchTerm);
+        // --- SEARCH & FILTER LOGIC ---
+        document.getElementById('searchInput').addEventListener('input', filterAndRenderNotes);
+        document.getElementById('mobileSearchInput').addEventListener('input', filterAndRenderNotes);
+        document.querySelectorAll('.category-filter').forEach(filter => {
+            filter.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentCategory = e.currentTarget.dataset.category;
+                document.getElementById('notesHeader').textContent = currentCategory === 'All' ? 'Semua Catatan' : `Kategori: ${currentCategory}`;
+                document.querySelectorAll('.category-filter').forEach(f => f.classList.remove('active-link'));
+                e.currentTarget.classList.add('active-link');
+                filterAndRenderNotes();
             });
-            renderNotes(filteredNotes);
         });
 
+        // --- CRUD ACTIONS ---
         document.getElementById('notesList').addEventListener('click', async (e) => {
-            const noteId = e.target.dataset.id;
-            if (!noteId) return;
-            const noteRef = doc(db, notesCollectionRef.path, noteId);
-            if (e.target.classList.contains('delete-btn')) {
-                if (confirm('Apakah Anda yakin ingin menghapus catatan ini?')) {
-                    try { await deleteDoc(noteRef); } catch (error) { console.error("Error deleting document: ", error); }
-                }
-            }
-            if (e.target.classList.contains('edit-btn')) {
-                try {
-                    const docSnap = await getDoc(noteRef);
-                    if (docSnap.exists()) {
-                        const noteData = docSnap.data();
-                        showEditModal(noteId, noteData.title, noteData.content);
+            const button = e.target.closest('button');
+            const card = e.target.closest('.note-card');
+
+            if (button) { // Edit or Delete button was clicked
+                const noteId = button.dataset.id;
+                const noteRef = doc(db, notesCollectionRef.path, noteId);
+                if (button.classList.contains('delete-btn')) {
+                    if (confirm('Anda yakin ingin menghapus catatan ini?')) {
+                        await deleteDoc(noteRef);
                     }
-                } catch (error) { console.error("Error mengambil dokumen untuk diedit:", error); }
+                }
+                if (button.classList.contains('edit-btn')) {
+                    const note = allNotes.find(n => n.id === noteId);
+                    if (note) showEditModal(note);
+                }
+            } else if (card) { // The card itself was clicked
+                const noteId = card.dataset.id;
+                const note = allNotes.find(n => n.id === noteId);
+                if (note) showViewModal(note);
             }
         });
 
+        // --- MODAL CONTROLS ---
         const addModal = document.getElementById('addModal');
-        const openAddModalBtn = document.getElementById('openAddModalBtn');
-        const cancelAddBtn = document.getElementById('cancelAdd');
-        const addNoteForm = document.getElementById('addNoteForm');
-        function showAddModal() { addModal.classList.remove('hidden'); }
-        function hideAddModal() { addNoteForm.reset(); addModal.classList.add('hidden'); }
-        openAddModalBtn.addEventListener('click', showAddModal);
-        cancelAddBtn.addEventListener('click', hideAddModal);
-        addNoteForm.addEventListener('submit', async (e) => {
+        const editModal = document.getElementById('editModal');
+        const viewModal = document.getElementById('viewModal');
+
+        // Add Modal
+        document.getElementById('openAddModalBtn').addEventListener('click', () => addModal.classList.remove('hidden'));
+        document.getElementById('cancelAdd').addEventListener('click', () => addModal.classList.add('hidden'));
+        document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!notesCollectionRef) return;
-            const title = document.getElementById('noteTitle').value;
-            const content = document.getElementById('noteContent').value;
-            try {
-                await addDoc(notesCollectionRef, { title, content, createdAt: new Date() });
-                hideAddModal();
-            } catch (error) { console.error("Error adding document: ", error); }
+            const tags = document.getElementById('noteTags').value.split(',').map(tag => tag.trim()).filter(Boolean);
+            await addDoc(notesCollectionRef, {
+                title: document.getElementById('noteTitle').value,
+                content: addEditor.root.innerHTML,
+                plainText: addEditor.getText(),
+                category: document.getElementById('noteCategory').value,
+                tags: tags,
+                createdAt: new Date()
+            });
+            addModal.classList.add('hidden');
+            e.target.reset();
+            addEditor.setText('');
         });
 
-        const editModal = document.getElementById('editModal');
-        const editNoteForm = document.getElementById('editNoteForm');
-        function showEditModal(id, title, content) {
-            document.getElementById('editNoteId').value = id;
-            document.getElementById('editNoteTitle').value = title;
-            document.getElementById('editNoteContent').value = content;
+        // Edit Modal
+        function showEditModal(note) {
+            document.getElementById('editNoteId').value = note.id;
+            document.getElementById('editNoteTitle').value = note.title;
+            editEditor.root.innerHTML = note.content;
+            document.getElementById('editNoteCategory').value = note.category;
+            document.getElementById('editNoteTags').value = (note.tags || []).join(', ');
             editModal.classList.remove('hidden');
         }
-        function hideEditModal() { editNoteForm.reset(); editModal.classList.add('hidden'); }
-        document.getElementById('cancelEdit').addEventListener('click', hideEditModal);
-        editNoteForm.addEventListener('submit', async (e) => {
+        document.getElementById('cancelEdit').addEventListener('click', () => editModal.classList.add('hidden'));
+        document.getElementById('editNoteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = document.getElementById('editNoteId').value;
-            const title = document.getElementById('editNoteTitle').value;
-            const content = document.getElementById('editNoteContent').value;
-            const noteRef = doc(db, notesCollectionRef.path, id);
-            try {
-                await updateDoc(noteRef, { title, content });
-                hideEditModal();
-            } catch (error) { console.error("Error updating document: ", error); }
+            const noteId = document.getElementById('editNoteId').value;
+            const noteRef = doc(db, notesCollectionRef.path, noteId);
+            const tags = document.getElementById('editNoteTags').value.split(',').map(tag => tag.trim()).filter(Boolean);
+            await updateDoc(noteRef, {
+                title: document.getElementById('editNoteTitle').value,
+                content: editEditor.root.innerHTML,
+                plainText: editEditor.getText(),
+                category: document.getElementById('editNoteCategory').value,
+                tags: tags,
+                updatedAt: new Date()
+            });
+            editModal.classList.add('hidden');
         });
 
+        // View Modal
+        function showViewModal(note) {
+            const contentContainer = document.getElementById('viewNoteContent');
+            document.getElementById('viewNoteTitle').textContent = note.title;
+            document.getElementById('viewNoteCategory').textContent = note.category;
+            contentContainer.innerHTML = note.content;
+            linkifyContainer(contentContainer); // Make links clickable
+            
+            const dateToDisplay = note.updatedAt ? note.updatedAt.toDate() : note.createdAt.toDate();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const dateLabel = note.updatedAt ? 'Terakhir diubah' : 'Dibuat pada';
+            document.getElementById('viewNoteDate').textContent = `${dateLabel} ${dateToDisplay.toLocaleDateString('id-ID', options)}`;
+
+            const tagsContainer = document.getElementById('viewNoteTags');
+            tagsContainer.innerHTML = (note.tags || []).map(tag => `<span class="note-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${escapeHTML(tag)}</span>`).join('');
+            viewModal.classList.remove('hidden');
+        }
+        document.getElementById('closeView').addEventListener('click', () => viewModal.classList.add('hidden'));
+        
+        // Close modals when clicking on the overlay
+        [addModal, editModal, viewModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        });
+
+        // --- HELPER FUNCTIONS ---
+        function linkifyContainer(container) {
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+            const nodesToProcess = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (node.parentElement.tagName !== 'A') {
+                    nodesToProcess.push(node);
+                }
+            }
+
+            nodesToProcess.forEach(node => {
+                const text = node.nodeValue;
+                const urlRegex = /\b((https?:\/\/|www\.)[^\s,."<>()]+|[a-zA-Z0-9.-]+\.(com|id|org|net|io|dev|app|co\.id)([^\s,."<>()]*))\b/g;
+                if (!urlRegex.test(text)) return;
+
+                const fragment = document.createDocumentFragment();
+                let lastIndex = 0;
+                text.replace(urlRegex, (match, ...args) => {
+                    const offset = args[args.length - 2];
+                    if (offset > lastIndex) {
+                        fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
+                    }
+                    const a = document.createElement('a');
+                    let href = match;
+                    if (!/^(https?:\/\/)/i.test(href)) {
+                        href = 'http://' + href;
+                    }
+                    a.href = href;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.className = 'text-blue-500 hover:underline';
+                    a.textContent = match;
+                    fragment.appendChild(a);
+                    lastIndex = offset + match.length;
+                });
+
+                if (lastIndex < text.length) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+                }
+                node.parentNode.replaceChild(fragment, node);
+            });
+        }
+
         function escapeHTML(str) {
+            if (!str) return '';
             const p = document.createElement('p');
             p.appendChild(document.createTextNode(str));
             return p.innerHTML;
