@@ -606,3 +606,91 @@ body {
 .mb-0 {
     margin-bottom: 0 !important;
 }
+
+/* Loading States */
+.loading {
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #42a5f5;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1000;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.error-message {
+    background: rgba(244, 67, 54, 0.1);
+    color: #d32f2f;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.retry-button {
+    background: #42a5f5;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+}
+
+.retry-button:hover {
+    background: #1976d2;
+}
+
+/* Disabled state for buttons during loading */
+.btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+/* Network status indicator */
+.network-status {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    z-index: 1001;
+    transition: all 0.3s ease;
+}
+
+.network-status.online {
+    background: #4caf50;
+    color: white;
+}
+
+.network-status.offline {
+    background: #f44336;
+    color: white;
+}
+
+.network-status.connecting {
+    background: #ff9800;
+    color: white;
+}

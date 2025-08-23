@@ -1,11 +1,12 @@
-// Note Management System
+// Note Management System with Server Storage
 class NoteManager {
     constructor() {
-        this.notes = this.loadNotes();
+        this.notes = [];
         this.currentNoteId = null;
+        this.apiBase = '/api/notes';
+        this.isLoading = false;
         this.initializeEventListeners();
-        this.renderNotes();
-        this.updateStats();
+        this.loadNotes();
     }
 
     // Initialize event listeners
@@ -36,23 +37,70 @@ class NoteManager {
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
     }
 
-    // Load notes from localStorage
-    loadNotes() {
-        const savedNotes = localStorage.getItem('noteOnlineNotes');
-        return savedNotes ? JSON.parse(savedNotes) : [];
+    // API helper methods
+    async apiRequest(url, options = {}) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            }
+            
+            return data;
+        } catch (error) {
+            console.error('API Request failed:', error);
+            this.showNotification(`Error: ${error.message}`, 'error');
+            throw error;
+        }
     }
 
-    // Save notes to localStorage
-    saveNotes() {
-        localStorage.setItem('noteOnlineNotes', JSON.stringify(this.notes));
+    // Load notes from server
+    async loadNotes() {
+        try {
+            this.setLoading(true);
+            const response = await this.apiRequest(this.apiBase);
+            this.notes = response.data || [];
+            this.renderNotes();
+            this.updateStats();
+        } catch (error) {
+            this.showNotification('Failed to load notes from server', 'error');
+            this.notes = [];
+        } finally {
+            this.setLoading(false);
+        }
     }
 
-    // Generate unique ID
-    generateId() {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    // Set loading state
+    setLoading(loading) {
+        this.isLoading = loading;
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(btn => {
+            btn.disabled = loading;
+            if (loading) {
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+        });
+        
+        // Show loading indicator in stats
+        if (loading) {
+            document.getElementById('totalNotes').textContent = '...';
+            document.getElementById('lastModified').textContent = 'Loading...';
+        }
     }
 
-    // Format date
+// Format date
     formatDate(timestamp) {
         const date = new Date(timestamp);
         const now = new Date();
@@ -103,53 +151,60 @@ class NoteManager {
         this.currentNoteId = null;
     }
 
-    // Save note
-    saveNote(e) {
+    // Save note to server
+    async saveNote(e) {
         e.preventDefault();
+        
+        if (this.isLoading) return;
         
         const title = document.getElementById('noteTitle').value.trim();
         const content = document.getElementById('noteContent').value.trim();
         const category = document.getElementById('noteCategory').value;
         
         if (!title || !content) {
-            alert('Please fill in both title and content.');
+            this.showNotification('Please fill in both title and content.', 'error');
             return;
         }
         
-        const now = Date.now();
-        
-        if (this.currentNoteId) {
-            // Update existing note
-            const noteIndex = this.notes.findIndex(n => n.id === this.currentNoteId);
-            if (noteIndex !== -1) {
-                this.notes[noteIndex] = {
-                    ...this.notes[noteIndex],
-                    title,
-                    content,
-                    category,
-                    updatedAt: now
-                };
+        try {
+            this.setLoading(true);
+            
+            if (this.currentNoteId) {
+                // Update existing note
+                const response = await this.apiRequest(`${this.apiBase}/${this.currentNoteId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ title, content, category })
+                });
+                
+                // Update local notes array
+                const noteIndex = this.notes.findIndex(n => n.id === this.currentNoteId);
+                if (noteIndex !== -1) {
+                    this.notes[noteIndex] = response.data;
+                }
+                
+                this.showNotification('Note updated successfully!', 'success');
+            } else {
+                // Create new note
+                const response = await this.apiRequest(this.apiBase, {
+                    method: 'POST',
+                    body: JSON.stringify({ title, content, category })
+                });
+                
+                // Add to local notes array
+                this.notes.unshift(response.data);
+                
+                this.showNotification('Note created successfully!', 'success');
             }
-        } else {
-            // Create new note
-            const newNote = {
-                id: this.generateId(),
-                title,
-                content,
-                category,
-                createdAt: now,
-                updatedAt: now
-            };
-            this.notes.unshift(newNote);
+            
+            this.renderNotes();
+            this.updateStats();
+            this.closeNoteModal();
+            
+        } catch (error) {
+            this.showNotification('Failed to save note. Please try again.', 'error');
+        } finally {
+            this.setLoading(false);
         }
-        
-        this.saveNotes();
-        this.renderNotes();
-        this.updateStats();
-        this.closeNoteModal();
-        
-        // Show success message
-        this.showNotification('Note saved successfully!', 'success');
     }
 
     // Open delete modal
@@ -164,15 +219,29 @@ class NoteManager {
         this.currentNoteId = null;
     }
 
-    // Delete note
-    deleteNote() {
-        if (this.currentNoteId) {
+    // Delete note from server
+    async deleteNote() {
+        if (!this.currentNoteId || this.isLoading) return;
+        
+        try {
+            this.setLoading(true);
+            
+            await this.apiRequest(`${this.apiBase}/${this.currentNoteId}`, {
+                method: 'DELETE'
+            });
+            
+            // Remove from local notes array
             this.notes = this.notes.filter(note => note.id !== this.currentNoteId);
-            this.saveNotes();
+            
             this.renderNotes();
             this.updateStats();
             this.closeDeleteModal();
-            this.showNotification('Note deleted successfully!', 'error');
+            this.showNotification('Note deleted successfully!', 'success');
+            
+        } catch (error) {
+            this.showNotification('Failed to delete note. Please try again.', 'error');
+        } finally {
+            this.setLoading(false);
         }
     }
 
