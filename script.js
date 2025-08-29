@@ -21,26 +21,36 @@
           e.preventDefault();
           // Simpan event untuk digunakan nanti
           deferredPrompt = e;
-          // Tampilkan tombol install di sidebar
-          installAppContainer.classList.remove('hidden');
+          // Tampilkan tombol install di sidebar jika elemennya ada
+          if (installAppContainer) {
+            installAppContainer.classList.remove('hidden');
+          }
         });
 
-        installAppSidebarBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          // Sembunyikan tombol setelah diklik
-          installAppContainer.classList.add('hidden');
-          // Tampilkan prompt instalasi
-          deferredPrompt.prompt();
-          // Tunggu hasil pilihan pengguna
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log(`User response to the install prompt: ${outcome}`);
-          // Kosongkan variabel deferredPrompt karena hanya bisa digunakan sekali
-          deferredPrompt = null;
-        });
+        if (installAppSidebarBtn) {
+            installAppSidebarBtn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              // Sembunyikan tombol setelah diklik
+              if (installAppContainer) {
+                 installAppContainer.classList.add('hidden');
+              }
+              // Tampilkan prompt instalasi
+              if (deferredPrompt) {
+                  deferredPrompt.prompt();
+                  // Tunggu hasil pilihan pengguna
+                  const { outcome } = await deferredPrompt.userChoice;
+                  console.log(`User response to the install prompt: ${outcome}`);
+                  // Kosongkan variabel deferredPrompt karena hanya bisa digunakan sekali
+                  deferredPrompt = null;
+              }
+            });
+        }
 
         window.addEventListener('appinstalled', () => {
           // Sembunyikan tombol jika aplikasi sudah diinstal
-          installAppContainer.classList.add('hidden');
+          if (installAppContainer) {
+            installAppContainer.classList.add('hidden');
+          }
           deferredPrompt = null;
           console.log('PWA was installed');
         });
@@ -96,7 +106,11 @@
             onSnapshot(notesCollectionRef, (snapshot) => {
                 allNotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 filterAndRenderNotes();
-                document.getElementById('loadingMessage').style.display = 'none';
+                // PERBAIKAN: Menambahkan pengecekan untuk memastikan elemen ada sebelum dimanipulasi
+                const loadingMessage = document.getElementById('loadingMessage');
+                if (loadingMessage) {
+                    loadingMessage.style.display = 'none';
+                }
             });
         }
 
@@ -177,19 +191,20 @@
             const button = e.target.closest('button');
             const card = e.target.closest('.note-card');
 
-            if (button) { // Edit or Delete button was clicked
+            if (button) { // Tombol Edit atau Hapus diklik
                 const noteId = button.dataset.id;
                 const noteRef = doc(db, notesCollectionRef.path, noteId);
                 if (button.classList.contains('delete-btn')) {
-                    if (confirm('Anda yakin ingin menghapus catatan ini?')) {
+                    // PERBAIKAN: Menggunakan modal kustom, bukan `confirm()` bawaan browser
+                    showConfirmModal('Anda yakin ingin menghapus catatan ini?', async () => {
                         await deleteDoc(noteRef);
-                    }
+                    });
                 }
                 if (button.classList.contains('edit-btn')) {
                     const note = allNotes.find(n => n.id === noteId);
                     if (note) showEditModal(note);
                 }
-            } else if (card) { // The card itself was clicked
+            } else if (card) { // Kartu catatan itu sendiri yang diklik
                 const noteId = card.dataset.id;
                 const note = allNotes.find(n => n.id === noteId);
                 if (note) showViewModal(note);
@@ -306,6 +321,60 @@
             });
         });
 
+        // --- CUSTOM CONFIRM MODAL ---
+        function showConfirmModal(message, onConfirm) {
+            // Hapus modal yang mungkin sudah ada
+            const existingModal = document.getElementById('customConfirmModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Buat elemen-elemen modal
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'customConfirmModal';
+            modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'bg-white rounded-2xl shadow-xl w-full max-w-sm p-6';
+
+            const messageP = document.createElement('p');
+            messageP.className = 'text-slate-700 text-lg mb-6';
+            messageP.textContent = message;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'flex justify-end gap-4';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'Batal';
+            cancelBtn.className = 'bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = 'Hapus';
+            confirmBtn.className = 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition';
+
+            // Gabungkan elemen-elemen
+            buttonContainer.appendChild(cancelBtn);
+            buttonContainer.appendChild(confirmBtn);
+            modalContent.appendChild(messageP);
+            modalContent.appendChild(buttonContainer);
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            // Tambahkan event listener
+            const closeModal = () => modalOverlay.remove();
+            
+            cancelBtn.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    closeModal();
+                }
+            });
+            confirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeModal();
+            });
+        }
+
         // --- HELPER FUNCTIONS ---
         function linkifyContainer(container) {
             const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
@@ -356,3 +425,4 @@
             p.appendChild(document.createTextNode(str));
             return p.innerHTML;
         }
+
