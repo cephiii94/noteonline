@@ -13,20 +13,22 @@
 
         // --- PWA INSTALL PROMPT LOGIC ---
         let deferredPrompt;
-        const installAppBtn = document.getElementById('installAppBtn');
+        const installAppContainer = document.getElementById('installAppContainer');
+        const installAppSidebarBtn = document.getElementById('installAppSidebarBtn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
           // Mencegah browser menampilkan prompt default
           e.preventDefault();
           // Simpan event untuk digunakan nanti
           deferredPrompt = e;
-          // Tampilkan tombol install kustom kita
-          installAppBtn.classList.remove('hidden');
+          // Tampilkan tombol install di sidebar
+          installAppContainer.classList.remove('hidden');
         });
 
-        installAppBtn.addEventListener('click', async () => {
+        installAppSidebarBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
           // Sembunyikan tombol setelah diklik
-          installAppBtn.classList.add('hidden');
+          installAppContainer.classList.add('hidden');
           // Tampilkan prompt instalasi
           deferredPrompt.prompt();
           // Tunggu hasil pilihan pengguna
@@ -38,7 +40,7 @@
 
         window.addEventListener('appinstalled', () => {
           // Sembunyikan tombol jika aplikasi sudah diinstal
-          installAppBtn.classList.add('hidden');
+          installAppContainer.classList.add('hidden');
           deferredPrompt = null;
           console.log('PWA was installed');
         });
