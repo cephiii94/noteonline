@@ -1,14 +1,22 @@
 // Nama cache
-const CACHE_NAME = 'notonlen-cache-v1';
+const CACHE_NAME = 'notonlen-cache-v2'; // Versi cache diperbarui untuk memastikan pembaruan
 
-// Daftar file yang akan di-cache
+// Daftar file inti yang akan di-cache
+// CATATAN: File 'login.html' dan 'firebase-config.js' dihapus karena tidak ditemukan,
+// yang menyebabkan service worker gagal diinstal.
+// Pastikan semua file dalam daftar ini ada di server Anda.
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/login.html',
-  '/style.css',
-  '/script.js',
-  '/firebase-config.js',
+  './', // Menambahkan './' untuk merujuk ke root direktori
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json', // Menambahkan manifest ke dalam cache
+  // Menambahkan ikon placeholder ke cache agar PWA dapat diinstal
+  'https://placehold.co/192x192/2563EB/FFFFFF?text=Icon',
+  'https://placehold.co/512x512/2563EB/FFFFFF?text=Icon',
+  
+  // Aset dari CDN (opsional, tapi bagus untuk offline)
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
@@ -28,23 +36,13 @@ self.addEventListener('install', event => {
         console.log('Cache dibuka');
         return cache.addAll(urlsToCache);
       })
-  );
-});
-
-// Event 'fetch': dipanggil setiap kali ada permintaan jaringan (request) dari aplikasi
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    // Coba cari response dari cache terlebih dahulu
-    caches.match(event.request)
-      .then(response => {
-        // Jika ditemukan di cache, kembalikan response dari cache
-        if (response) {
-          return response;
-        }
-        // Jika tidak, lakukan request ke jaringan
-        return fetch(event.request);
+      .catch(error => {
+        // Log error jika ada file yang gagal di-cache
+        console.error('Gagal menambahkan file ke cache:', error);
       })
   );
+  // Langsung aktifkan service worker baru setelah instalasi berhasil
+  self.skipWaiting(); 
 });
 
 // Event 'activate': dipanggil saat service worker diaktifkan
@@ -56,10 +54,36 @@ self.addEventListener('activate', event => {
         cacheNames.map(cacheName => {
           // Hapus cache lama yang tidak digunakan lagi
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Menghapus cache lama:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => self.clients.claim()) // Ambil alih kontrol halaman
+  );
+});
+
+// Event 'fetch': dipanggil setiap kali ada permintaan jaringan (request) dari aplikasi
+self.addEventListener('fetch', event => {
+  // Hanya tangani request GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  
+  event.respondWith(
+    caches.open(CACHE_NAME).then(cache => {
+      return fetch(event.request)
+        .then(networkResponse => {
+          // Jika berhasil dari jaringan, simpan salinannya ke cache
+          if (networkResponse.ok) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Jika jaringan gagal, coba ambil dari cache
+          return cache.match(event.request);
+        });
     })
   );
 });
