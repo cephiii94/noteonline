@@ -1,0 +1,54 @@
+/* Menggunakan warna soft blue sebagai dasar sesuai preferensi Tuan Cecep */
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FD; /* Soft blueish-white */
+        }
+        .bg-soft-blue {
+            background-color: #A8B8D8;
+        }
+        .text-soft-blue {
+            color: #4A698C;
+        }
+        .sidebar {
+            background-color: #FFFFFF;
+            border-right: 1px solid #E5E9F2;
+        }
+        .note-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E5E9F2;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .note-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            border-color: #A8B8D8;
+        }
+        .active-link {
+            background-color: #EFF6FF;
+            color: #2563EB;
+            font-weight: 600;
+        }
+        .active-link i, .active-link span {
+            color: #2563EB;
+        }
+        /* Perubahan: Mengatur ukuran font di dalam editor agar tidak terlalu kecil */
+        .ql-editor {
+            min-height: 150px;
+            font-size: 1rem; /* 16px, ukuran font standar */
+            line-height: 1.6; /* Jarak antar baris agar lebih mudah dibaca */
+        }
+        .note-tag {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+        /* Styling untuk konten Rich Text di View Modal */
+        .note-view-content p { margin-bottom: 1rem; }
+        .note-view-content ol, .note-view-content ul { margin-left: 1.5rem; margin-bottom: 1rem; list-style: revert; }
+        .note-view-content li { margin-bottom: 0.5rem; }
+        .note-view-content h1 { font-size: 2em; font-weight: bold; margin-bottom: 1rem; }
+        .note-view-content h2 { font-size: 1.5em; font-weight: bold; margin-bottom: 1rem; }
+        .note-view-content h3 { font-size: 1.17em; font-weight: bold; margin-bottom: 1rem; }
+        .note-view-content strong { font-weight: bold; }
+        .note-view-content em { font-style: italic; }
+        .note-view-content u { text-decoration: underline; }
