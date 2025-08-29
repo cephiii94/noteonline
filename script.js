@@ -11,6 +11,39 @@
         let currentCategory = "All";
         let addEditor, editEditor;
 
+        // --- PWA INSTALL PROMPT LOGIC ---
+        let deferredPrompt;
+        const installAppBtn = document.getElementById('installAppBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Mencegah browser menampilkan prompt default
+          e.preventDefault();
+          // Simpan event untuk digunakan nanti
+          deferredPrompt = e;
+          // Tampilkan tombol install kustom kita
+          installAppBtn.classList.remove('hidden');
+        });
+
+        installAppBtn.addEventListener('click', async () => {
+          // Sembunyikan tombol setelah diklik
+          installAppBtn.classList.add('hidden');
+          // Tampilkan prompt instalasi
+          deferredPrompt.prompt();
+          // Tunggu hasil pilihan pengguna
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          // Kosongkan variabel deferredPrompt karena hanya bisa digunakan sekali
+          deferredPrompt = null;
+        });
+
+        window.addEventListener('appinstalled', () => {
+          // Sembunyikan tombol jika aplikasi sudah diinstal
+          installAppBtn.classList.add('hidden');
+          deferredPrompt = null;
+          console.log('PWA was installed');
+        });
+
+
         // --- AUTH & INITIALIZATION ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -91,7 +124,6 @@
             } else {
                 notesToRender.forEach(note => {
                     const noteElement = document.createElement('div');
-                    // Perbaikan: Padding pada kartu catatan dibuat responsif
                     noteElement.className = 'note-card rounded-xl p-4 sm:p-5 flex flex-col justify-between';
                     noteElement.dataset.id = note.id;
                     
@@ -167,8 +199,13 @@
         const editModal = document.getElementById('editModal');
         const viewModal = document.getElementById('viewModal');
 
+        function openAddModal() {
+            addModal.classList.remove('hidden');
+        }
+
         // Add Modal
-        document.getElementById('openAddModalBtn').addEventListener('click', () => addModal.classList.remove('hidden'));
+        document.getElementById('openAddModalBtn').addEventListener('click', openAddModal);
+        document.getElementById('openAddModalBtnMobile').addEventListener('click', openAddModal);
         document.getElementById('cancelAdd').addEventListener('click', () => addModal.classList.add('hidden'));
         document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -179,7 +216,6 @@
                 plainText: addEditor.getText(),
                 category: document.getElementById('noteCategory').value,
                 tags: tags,
-                // Kolom baru untuk tautan produk
                 productLink: document.getElementById('noteLink').value,
                 createdAt: new Date()
             });
@@ -195,7 +231,6 @@
             editEditor.root.innerHTML = note.content;
             document.getElementById('editNoteCategory').value = note.category;
             document.getElementById('editNoteTags').value = (note.tags || []).join(', ');
-            // Menampilkan tautan produk di modal edit
             document.getElementById('editNoteLink').value = note.productLink || '';
             editModal.classList.remove('hidden');
         }
@@ -211,7 +246,6 @@
                 plainText: editEditor.getText(),
                 category: document.getElementById('editNoteCategory').value,
                 tags: tags,
-                // Memperbarui kolom tautan produk
                 productLink: document.getElementById('editNoteLink').value,
                 updatedAt: new Date()
             });
@@ -227,7 +261,7 @@
             document.getElementById('viewNoteTitle').textContent = note.title;
             document.getElementById('viewNoteCategory').textContent = note.category;
             contentContainer.innerHTML = note.content;
-            linkifyContainer(contentContainer); // Make links clickable
+            linkifyContainer(contentContainer);
             
             const dateToDisplay = note.updatedAt ? note.updatedAt.toDate() : note.createdAt.toDate();
             const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -237,7 +271,6 @@
             const tagsContainer = document.getElementById('viewNoteTags');
             tagsContainer.innerHTML = (note.tags || []).map(tag => `<span class="note-tag text-xs font-medium px-2.5 py-0.5 rounded-full">${escapeHTML(tag)}</span>`).join('');
             
-            // Menampilkan tautan produk jika ada
             if (note.productLink) {
                 viewProductLink.href = note.productLink;
                 viewProductLink.textContent = note.productLink;
@@ -246,26 +279,23 @@
                 productLinkContainer.classList.add('hidden');
             }
 
-            // Set data-id for the floating edit button
             document.getElementById('editFab').dataset.id = note.id;
 
             viewModal.classList.remove('hidden');
         }
         document.getElementById('closeView').addEventListener('click', () => viewModal.classList.add('hidden'));
         
-        // Event listener for the floating edit button
         document.getElementById('editFab').addEventListener('click', (e) => {
             const noteId = e.currentTarget.dataset.id;
             if (noteId) {
                 const note = allNotes.find(n => n.id === noteId);
                 if (note) {
-                    viewModal.classList.add('hidden'); // Close view modal
-                    showEditModal(note); // Open edit modal
+                    viewModal.classList.add('hidden');
+                    showEditModal(note);
                 }
             }
         });
 
-        // Close modals when clicking on the overlay
         [addModal, editModal, viewModal].forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
