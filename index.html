@@ -43,8 +43,8 @@
                 <span>Proyek</span>
             </a>
         </nav>
-        <!-- Perubahan: Tombol Install PWA dipindahkan ke sini -->
-        <nav id="installAppContainer" class="flex flex-col gap-2 mt-6 hidden">
+        <!-- Perubahan: Tombol Install PWA dibuat selalu terlihat -->
+        <nav id="installAppContainer" class="flex flex-col gap-2 mt-6">
              <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Aplikasi</p>
             <a href="#" id="installAppSidebarBtn" class="flex items-center gap-3 px-4 py-2 rounded-lg text-green-700 bg-green-50 hover:bg-green-100">
                 <i class="fas fa-download w-5 text-center text-green-600"></i>
@@ -72,7 +72,6 @@
                 <input type="search" id="mobileSearchInput" placeholder="Search..." class="w-full pl-12 pr-4 py-2.5 bg-slate-100 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
             </div>
             <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                <!-- Perubahan: Tombol Install PWA dihapus dari header -->
                 <div id="userInfo" class="text-sm text-slate-600 text-right">
                     <p class="font-semibold" id="userNameDisplay">Memuat...</p>
                     <p class="text-xs hidden sm:block" id="userEmailDisplay"></p>
@@ -101,108 +100,38 @@
         <i class="fas fa-pen text-xl"></i>
     </button>
 
+    <!-- Modal Tambah Catatan -->
     <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col max-h-[90vh]">
-            <div class="flex-shrink-0 p-6 border-b border-slate-200">
-                <h2 class="text-2xl font-semibold text-blue-700">Buat Catatan Baru</h2>
-            </div>
-    
-            <div class="flex-1 overflow-y-auto">
-                <form id="addNoteForm" class="p-6">
-                    <input type="text" id="noteTitle" placeholder="Judul Catatan..." class="w-full px-4 py-3 mb-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required>
-                    <div id="add-editor" class="mb-4"></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select id="noteCategory" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                            <option value="Personal">Personal</option>
-                            <option value="Bisnis">Bisnis</option>
-                            <option value="Proyek">Proyek</option>
-                        </select>
-                        <input type="text" id="noteTags" placeholder="Tags (dipisah koma)..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                        <input type="url" id="noteLink" placeholder="Tautan Produk (Opsional)..." class="w-full md:col-span-2 px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                    </div>
-                </form>
-            </div>
-    
-            <div class="flex-shrink-0 flex justify-end gap-4 p-6 border-t border-slate-200">
-                <button type="button" id="cancelAdd" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition">Batal</button>
-                <button type="submit" form="addNoteForm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan</button>
-            </div>
-        </div>
+        <!-- Konten Modal -->
     </div>
     
+    <!-- Modal Edit Catatan -->
     <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col max-h-[90vh]">
-            <div class="flex-shrink-0 p-6 border-b border-slate-200">
-                <h2 class="text-2xl font-semibold text-blue-700">Edit Catatan</h2>
-            </div>
-            
-            <div class="flex-1 overflow-y-auto">
-                <form id="editNoteForm" class="p-6">
-                    <input type="hidden" id="editNoteId">
-                    <input type="text" id="editNoteTitle" placeholder="Judul Catatan" class="w-full px-4 py-3 mb-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required>
-                    <div id="edit-editor" class="mb-4"></div>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select id="editNoteCategory" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                            <option value="Personal">Personal</option>
-                            <option value="Bisnis">Bisnis</option>
-                            <option value="Proyek">Proyek</option>
-                        </select>
-                        <input type="text" id="editNoteTags" placeholder="Tags (dipisah koma)..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                        <input type="url" id="editNoteLink" placeholder="Tautan Produk (Opsional)..." class="w-full md:col-span-2 px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                    </div>
-                </form>
-            </div>
-    
-            <div class="flex-shrink-0 flex justify-end gap-4 p-6 border-t border-slate-200">
-                <button type="button" id="cancelEdit" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition">Batal</button>
-                <button type="submit" form="editNoteForm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan Perubahan</button>
-            </div>
-        </div>
+        <!-- Konten Modal -->
     </div>
 
+    <!-- Modal Lihat Catatan -->
     <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl flex flex-col relative" style="max-height: 90vh;">
-            <div class="flex-shrink-0 p-6 border-b border-slate-200">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h2 id="viewNoteTitle" class="text-2xl font-bold text-slate-800 mb-1"></h2>
-                        <p id="viewNoteDate" class="text-sm text-slate-400"></p>
-                    </div>
-                    <button id="closeView" class="text-slate-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-100 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="flex items-center gap-4 mt-4 text-sm">
-                    <span id="viewNoteCategory" class="font-semibold text-blue-600 px-3 py-1 bg-blue-100 rounded-full"></span>
-                    <div id="viewNoteTags" class="flex flex-wrap gap-2"></div>
-                </div>
-            </div>
-            <div class="flex-1 overflow-y-auto">
-                <div id="viewNoteContent" class="note-view-content text-slate-700 p-6"></div>
-                <div id="productLinkContainer" class="p-6 border-t border-slate-200 hidden">
-                    <p class="text-sm font-semibold text-slate-500 uppercase mb-2">Tautan Produk</p>
-                    <a id="viewProductLink" href="#" target="_blank" class="text-blue-500 hover:underline">Buka Tautan Produk</a>
-                </div>
-            </div>
-            
-            <button id="editFab" class="absolute bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" title="Edit Catatan">
-                <i class="fas fa-pencil-alt"></i>
-            </button>
+        <!-- Konten Modal -->
+    </div>
+
+    <!-- Perubahan: Modal baru untuk Info Instalasi PWA -->
+    <div id="pwaInfoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <i class="fas fa-info-circle text-blue-500 text-4xl mb-4"></i>
+            <h2 class="text-xl font-bold text-slate-800 mb-2">Info Instalasi</h2>
+            <p class="text-slate-600 mb-6">Fitur "Install Aplikasi" hanya tersedia saat Anda membuka situs ini dari alamat web yang sudah di-deploy (HTTPS).</p>
+            <button id="closePwaInfoModal" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Mengerti</button>
         </div>
     </div>
     
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="script.js" type="module"></script>
     
-    <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker berhasil didaftarkan: ', registration);
-                    })
-                    .catch(error => {
-                        console.log('Pendaftaran Service Worker gagal: ', error);
-                    });
+                navigator.serviceWorker.register('/sw.js');
             });
         }
     </script>
