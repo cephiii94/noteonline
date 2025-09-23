@@ -429,17 +429,39 @@
                         updatedAt: new Date()
                     });
                 });
+                
+                // Perbaikan: Ikon Centang dan Hapus dengan jarak yang lebih baik
+                const actionBtns = document.createElement('div');
+                actionBtns.className = 'flex items-center gap-2';
+                
+                const doneBtn = document.createElement('button');
+                doneBtn.className = 'done-btn text-green-500 hover:text-green-600 w-8 h-8 rounded-full hover:bg-green-100 flex items-center justify-center transition';
+                doneBtn.innerHTML = '<i class="fas fa-check"></i>';
+                doneBtn.title = 'Pindah ke Selesai';
+                doneBtn.style.display = (task.column === 'backlog' || task.column === 'doing') ? 'block' : 'none';
+                doneBtn.addEventListener('click', () => {
+                    updateDoc(doc(db, kanbanCollectionRef.path, task.id), {
+                        column: 'done',
+                        updatedAt: new Date()
+                    });
+                });
 
                 const del = document.createElement('button');
-                del.className = 'del';
-                del.innerHTML = '<i class="fas fa-trash"></i> Hapus';
+                del.className = 'del text-red-500 hover:text-red-600 w-8 h-8 rounded-full hover:bg-red-100 flex items-center justify-center transition';
+                del.innerHTML = '<i class="fas fa-trash"></i>';
+                del.title = 'Hapus Tugas';
                 del.addEventListener('click', () => { 
                     showConfirmModal('Apakah Anda yakin ingin menghapus tugas ini?', () => {
                         deleteDoc(doc(db, kanbanCollectionRef.path, task.id));
                     });
                 });
 
-                h.append(title, del);
+                h.append(title);
+                if (task.column !== 'done') {
+                  actionBtns.append(doneBtn);
+                }
+                actionBtns.append(del);
+                h.append(actionBtns);
 
                 const note = document.createElement('textarea');
                 note.className = 'note';
