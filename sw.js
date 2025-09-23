@@ -1,5 +1,5 @@
 // Nama cache diperbarui untuk memicu pembaruan
-const CACHE_NAME = 'notonlen-cache-v3';
+const CACHE_NAME = 'notonlen-cache-v4';
 
 // Daftar file inti yang akan di-cache
 const urlsToCache = [
@@ -9,6 +9,7 @@ const urlsToCache = [
   './style.css',
   './script.js',
   './manifest.json',
+  './kanban.html',
   'https://placehold.co/192x192/2563EB/FFFFFF?text=Icon',
   'https://placehold.co/512x512/2563EB/FFFFFF?text=Icon',
   

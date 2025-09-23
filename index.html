@@ -42,7 +42,16 @@
                 <span class="w-5 text-center">&#x1F4C1;</span>
                 <span>Proyek</span>
             </a>
+         </nav>
+         <nav class="flex flex-col gap-2 mt-6">            
+             <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Shortcut</p>
+            <a href="/kanban.html" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
+            <a href="/kanban.html" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
+                 <span class="w-5 text-center">&#x1F4CB;</span>
+                 <span>Kanban</span>
+                         </a>
         </nav>
+        
         <!-- Perubahan: Tombol Install PWA dipindahkan ke sini -->
         <nav id="installAppContainer" class="flex flex-col gap-2 mt-6 hidden">
              <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Aplikasi</p>
@@ -197,6 +206,7 @@
     
     <!-- PWA Service Worker Registration -->
     <script>
+        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')

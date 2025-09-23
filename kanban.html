@@ -3,339 +3,710 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kanban Sederhana – Isekai Roblox</title>
+  
+  <!-- PWA Tags -->
+  <meta name="theme-color" content="#2563EB"/>
+  <link rel="manifest" href="manifest.json">
+  
+  <title>Kanban Sederhana - Notonlen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <style>
-    :root{--bg:#f6f7fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--radius:14px}
+    /* Menggunakan warna soft blue sebagai dasar sesuai preferensi Tuan Cecep */
+    :root{
+        --bg: #F8F9FD; /* Soft blueish-white */
+        --card: #fff;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --line: #E5E9F2; /* Soft border color */
+        --accent: #2563EB; /* Blue accent */
+        --radius: 14px;
+    }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    header{position:sticky;top:0;background:#ffffffcc;backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid var(--line)}
-    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
-    h1{margin:0;font-size:18px}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    input,select,button,textarea{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;background:#fff}
-    button{cursor:pointer}
-    button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-
-    /* --- Board: mobile-first horizontal scroll with column min-width --- */
-    .board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,1fr);gap:12px;margin-top:16px;overflow-x:auto;padding-bottom:6px}
-    .board::-webkit-scrollbar{height:8px}
-    .board::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:999px}
-    @media (min-width:880px){.board{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow-x:visible}}
-
-    .col{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;min-height:56vh;display:flex;flex-direction:column}
-    .col h3{margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-    .dropzone{flex:1;display:flex;flex-direction:column;gap:8px}
-    .dropzone.dragover,.dropzone.highlight{outline:2px dashed #9ca3af;outline-offset:4px;background:#fafafa}
-
-    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;cursor:grab;touch-action:none}
+    body{
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.4 'Inter', sans-serif;
+    }
+    .main-content {
+      background-color: var(--bg);
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:14px 16px;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+    }
+    .toolbar{
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    input,select,button,textarea{
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font: inherit;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    button{
+      cursor:pointer;
+    }
+    button.primary {
+        background-color: var(--accent);
+        color: #fff;
+        border: none;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+    }
+    button.primary:hover {
+        background-color: #1e40af;
+    }
+    .board{
+      display: flex;
+      gap:16px;
+      padding-bottom:12px;
+      overflow-x: auto;
+    }
+    .col{
+      flex: 1 0 300px;
+      min-width:300px;
+      background:#f1f5f9;
+      border-radius:12px;
+      padding:16px;
+    }
+    @media (min-width: 768px) {
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            overflow-x: visible;
+        }
+        .col {
+            min-width: unset;
+        }
+    }
+    .col h3{
+      margin:0;
+      margin-bottom:10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align:center;
+      color:var(--ink);
+    }
+    .dropzone{
+      min-height:100px;
+      border-radius:8px;
+      border:2px dashed transparent;
+      transition:border-color 0.2s;
+      padding:4px;
+    }
+    .dropzone.dragover, .dropzone.highlight{
+      border-color:var(--accent);
+      background: #e0e7ff;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:8px;
+      padding:12px;
+      margin-bottom:8px;
+      cursor:grab;
+      box-shadow:0 1px 3px (0,0,0,.05);
+      transition:transform 0.2s;
+    }
     .card:active{cursor:grabbing}
-    .card header{display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;backdrop-filter:none;position:static}
-    .title[contenteditable]{outline:0}
-    .meta{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px;margin-top:6px}
-    .del{border:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:4px 8px}
-    .note{width:100%;margin-top:8px;resize:vertical}
-
-    /* Ghost card for touch drag */
-    .ghost{position:fixed;top:0;left:0;pointer-events:none;opacity:.9;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);width:280px}
-
-    footer{color:var(--muted);text-align:center;margin:18px 0}
-    .howto{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:16px 0}
-    .howto h2{margin-top:0;font-size:16px}
-    .howto ol{padding-left:20px}
+    .card header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+    .card .title{
+      font-weight:600;
+      flex:1;
+      padding:0 4px;
+    }
+    .card .del{
+      color:#94a3b8;
+      border:none;
+      background:none;
+      font-size:12px;
+    }
+    .card .del:hover{
+      color:#ef4444;
+    }
+    .card .note{
+      width:100%;
+      min-height:40px;
+      padding:8px;
+      resize:vertical;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:6px;
+      font-size:12px;
+    }
+    .card .meta{
+      font-size:10px;
+      color:var(--muted);
+      text-align:right;
+      margin-top:8px;
+    }
+    .ghost{
+      opacity:0.6;
+      position:fixed;
+      pointer-events:none;
+      transform:translate(0,0);
+      z-index:9999
+    }
+    footer{
+      color:var(--muted);
+      text-align:center;
+      margin:18px 0;
+    }
+    .howto{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:14px;
+      margin:16px 0;
+    }
+    .howto h2{
+      margin-top:0;
+      font-size:16px;
+    }
+    .howto ol{
+      padding-left:20px;
+    }
+    .howto p, .howto li {
+        font-size: 14px;
+    }
+    .loading-spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #2563EB;
+        animation: spin 1s ease infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .sticky-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #ffffff;
+        padding: 16px;
+        border-bottom: 1px solid #E5E9F2;
+    }
   </style>
 </head>
-<body>
-  <header>
-    <div class="wrap">
-      <h1>Kanban Sederhana – Isekai Roblox</h1>
-      <div class="toolbar">
-        <input id="newTitle" placeholder="Judul task (mis. Title Screen)" />
-        <select id="newColumn">
-          <option value="backlog">Backlog</option>
-          <option value="doing">Sedang Dikerjakan</option>
-          <option value="done">Selesai</option>
-        </select>
-        <button class="primary" id="addBtn">+ Tambah</button>
-        <input id="search" placeholder="Cari…" />
-        <button id="resetBtn">Reset</button>
-        <button id="exportBtn">Export JSON</button>
-        <input type="file" id="importFile" accept="application/json" style="display:none" />
-        <button id="importBtn">Import JSON</button>
-      </div>
-    </div>
-  </header>
+<body class="relative md:flex h-screen overflow-hidden">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar w-64 flex-shrink-0 flex flex-col p-6 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
+        <div class="text-2xl font-bold text-blue-800 mb-10">Notonlen</div>
+        <nav class="flex flex-col gap-2">
+            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Menu</p>
+            <a href="/index.html" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
+                <i class="fas fa-grip-horizontal w-5 text-center text-slate-500"></i>
+                <span>Semua Catatan</span>
+            </a>
+        </nav>
+        <nav class="flex flex-col gap-2 mt-6">
+            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Kategori</p>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700">
+                <span class="w-5 text-center">&#x1F4CB;</span>
+                <span>Personal</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700">
+                <span class="w-5 text-center">&#x1F4C8;</span>
+                <span>Bisnis</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700">
+                <span class="w-5 text-center">&#x1F4C1;</span>
+                <span>Proyek</span>
+            </a>
+        </nav>
+        <nav class="flex flex-col gap-2 mt-6">            
+            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Shortcut</p>
+            <a href="/kanban.html" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50 active-link">
+                <span class="w-5 text-center">&#x1F4CB;</span>
+                <span>Kanban</span>
+            </a>
+        </nav>
+        <div class="mt-auto text-center text-xs text-slate-400">
+            <p>&copy; 2025 Notonlen</p>
+        </div>
+    </aside>
 
-  <main class="wrap">
-    <div class="board" id="board">
-      <section class="col" data-col="backlog">
-        <h3>Backlog</h3>
-        <div class="dropzone" data-col="backlog"></div>
-      </section>
-      <section class="col" data-col="doing">
-        <h3>Sedang Dikerjakan</h3>
-        <div class="dropzone" data-col="doing"></div>
-      </section>
-      <section class="col" data-col="done">
-        <h3>Selesai</h3>
-        <div class="dropzone" data-col="done"></div>
-      </section>
-    </div>
+    <main class="main-content flex-1 flex flex-col h-screen overflow-y-auto">
+        <header class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 bg-white sticky top-0 z-10 gap-4">
+            <div class="flex items-center">
+                <button id="menu-toggle" class="md:hidden text-slate-600 hover:text-blue-600 mr-2"><i class="fas fa-bars text-xl"></i></button>
+                <h1 class="text-xl font-bold text-slate-800">Kanban Sederhana</h1>
+            </div>
+            <div id="userInfo" class="flex-shrink-0 flex items-center gap-4 text-right text-sm text-slate-600">
+                <div id="userEmailDisplay"></div>
+                <button id="logoutBtn" class="bg-red-100 hover:bg-red-200 text-red-600 font-semibold py-2 px-3 sm:px-4 rounded-lg text-sm transition flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="hidden sm:inline">Keluar</span>
+                </button>
+            </div>
+        </header>
 
-    <section class="howto">
-      <h2>📖 Cara Menggunakan</h2>
-      <ol>
-        <li>Ketik judul task di kotak "Judul task" → pilih kolom (Backlog / Sedang Dikerjakan / Selesai) → klik <b>+ Tambah</b>.</li>
-        <li><b>Backlog</b> adalah daftar ide atau pekerjaan yang belum dikerjakan. Semua task baru biasanya masuk ke sini dulu sebelum dipindahkan ke kolom lain.</li>
-        <li>Geser kartu (drag & drop) ke kolom lain untuk update status task. <b>Mobile:</b> tekan-tahan kartu sebentar lalu seret, kolom akan tersorot.</li>
-        <li>Edit judul langsung di kartu (klik teks judul). Tambahkan catatan di textarea bawah judul.</li>
-        <li>Klik tombol <b>Hapus</b> untuk menghapus task.</li>
-        <li>Gunakan kotak <b>Cari</b> untuk memfilter task → klik <b>Reset</b> untuk menampilkan semua kembali.</li>
-        <li>Klik <b>Export JSON</b> untuk menyimpan semua task ke file .json. Bisa diimpor lagi dengan <b>Import JSON</b>.</li>
-        <li>Semua data otomatis tersimpan di browser (localStorage).</li>
-        <li><b>Tips mobile:</b> Board bisa digeser secara horizontal untuk melihat semua kolom.</li>
-      </ol>
-    </section>
-  </main>
+        <div class="sticky-toolbar">
+            <div class="toolbar">
+                <input id="newTitle" placeholder="Judul task..." />
+                <select id="newColumn">
+                    <option value="backlog">Backlog</option>
+                    <option value="doing">Sedang Dikerjakan</option>
+                    <option value="done">Selesai</option>
+                </select>
+                <button class="primary" id="addBtn"><i class="fas fa-plus"></i> Tambah</button>
+                <input id="search" placeholder="Cari..." />
+                <button id="resetBtn"><i class="fas fa-redo"></i> Reset</button>
+                <button id="exportBtn"><i class="fas fa-download"></i> Export JSON</button>
+                <input type="file" id="importFile" accept="application/json" style="display:none" />
+                <button id="importBtn"><i class="fas fa-upload"></i> Import JSON</button>
+            </div>
+        </div>
 
-  <footer class="wrap">Data tersimpan di browser (localStorage). Dibuat untuk proyek Isekai Roblox milik Tuan Cecep.</footer>
+        <div class="p-4 md:p-6 flex-1">
+            <div id="loading" class="flex flex-col items-center justify-center p-10 h-full">
+                <div class="loading-spinner mb-4"></div>
+                <p class="text-slate-500">Memuat data...</p>
+            </div>
 
-  <script>
-    const STORAGE_KEY = "kanban_isekai_simple_v1";
-    const els = {
-      newTitle: document.getElementById('newTitle'),
-      newColumn: document.getElementById('newColumn'),
-      addBtn: document.getElementById('addBtn'),
-      search: document.getElementById('search'),
-      resetBtn: document.getElementById('resetBtn'),
-      exportBtn: document.getElementById('exportBtn'),
-      importBtn: document.getElementById('importBtn'),
-      importFile: document.getElementById('importFile'),
-      board: document.getElementById('board'),
-    };
+            <div class="board" id="board" style="display: none;">
+                <section class="col" data-col="backlog">
+                    <h3>Backlog</h3>
+                    <div class="dropzone" data-col="backlog"></div>
+                </section>
+                <section class="col" data-col="doing">
+                    <h3>Sedang Dikerjakan</h3>
+                    <div class="dropzone" data-col="doing"></div>
+                </section>
+                <section class="col" data-col="done">
+                    <h3>Selesai</h3>
+                    <div class="dropzone" data-col="done"></div>
+                </section>
+            </div>
 
-    function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
+            <section class="howto mt-6">
+                <h2>📖 Cara Menggunakan</h2>
+                <ol>
+                    <li>Ketik judul task di kotak "Judul task..." → pilih kolom → klik <b>+ Tambah</b>.</li>
+                    <li>Geser kartu (drag & drop) ke kolom lain untuk update status task.</li>
+                    <li>Edit judul langsung di kartu (klik teks judul). Tambahkan catatan di textarea bawah judul.</li>
+                    <li>Klik tombol <b>Hapus</b> untuk menghapus task.</li>
+                    <li>Gunakan kotak <b>Cari</b> untuk memfilter task → klik <b>Reset</b> untuk menampilkan semua kembali.</li>
+                    <li>Klik <b>Export JSON</b> untuk menyimpan semua task ke file .json.</li>
+                    <li>Gunakan <b>Import JSON</b> untuk memuat task dari file.</li>
+                    <li>Semua data otomatis tersimpan di cloud (Firebase).</li>
+                </ol>
+            </section>
+        </div>
+        <footer class="wrap">Data tersimpan di cloud (Firebase). Dibuat untuk proyek Isekai Roblox milik Tuan Cecep.</footer>
+    </main>
+    
 
-    function load(){
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw){
-        // Seed tugas awal sesuai konsep isekai
-        return [
-          mk('Title Screen', 'Tombol Play/Settings/Credits, nuansa isekai', 'backlog'),
-          mk('Cutscene: Spawn bawah air', 'Muncul di bawah air → naik → ke Town Square', 'backlog'),
-          mk('Town Square Map', 'Alun-alun, papan quest, portal Tower', 'doing'),
-          mk('NPC Quest Master', 'Dialog awal + beri main quest', 'doing'),
-          mk('Simpan Progress (DataStore)', 'Level, achievement, inventory', 'backlog'),
-          mk('Combat dasar ala SAO', 'Anim swing pedang, hitbox, dummy slime', 'backlog'),
-        ];
-      }
-      try{return JSON.parse(raw)}catch(e){return []}
-    }
+    <script type="module">
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        setLogLevel('debug');
 
-    function save(){localStorage.setItem(STORAGE_KEY, JSON.stringify(state))}
+        let userId = null;
+        let kanbanCollectionRef;
+        let isAuthReady = false;
 
-    function mk(title, note, column){
-      return {id: uid(), title, note, column};
-    }
+        const els = {
+            newTitle: document.getElementById('newTitle'),
+            newColumn: document.getElementById('newColumn'),
+            addBtn: document.getElementById('addBtn'),
+            search: document.getElementById('search'),
+            resetBtn: document.getElementById('resetBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            importBtn: document.getElementById('importBtn'),
+            importFile: document.getElementById('importFile'),
+            board: document.getElementById('board'),
+            loading: document.getElementById('loading'),
+            userEmailDisplay: document.getElementById('userEmailDisplay'),
+            logoutBtn: document.getElementById('logoutBtn')
+        };
+        
+        let allTasks = [];
 
-    let state = load();
-
-    function render(){
-      const q = els.search.value.trim().toLowerCase();
-      // Clear zones
-      document.querySelectorAll('.dropzone').forEach(z=>z.innerHTML='');
-
-      state
-        .filter(t => !q || (t.title+" "+(t.note||'')).toLowerCase().includes(q))
-        .forEach(task => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.draggable = true; // desktop HTML5 DnD
-          card.dataset.id = task.id;
-
-          const h = document.createElement('header');
-          const title = document.createElement('div');
-          title.className = 'title';
-          title.contentEditable = 'true';
-          title.innerText = task.title;
-          title.addEventListener('input', ()=>{ task.title = title.innerText; save(); });
-
-          const del = document.createElement('button');
-          del.className = 'del';
-          del.textContent = 'Hapus';
-          del.addEventListener('click', ()=>{ state = state.filter(t=>t.id!==task.id); save(); render(); });
-
-          h.append(title, del);
-
-          const note = document.createElement('textarea');
-          note.className = 'note';
-          note.placeholder = 'Catatan…';
-          note.value = task.note||'';
-          note.addEventListener('input', ()=>{ task.note = note.value; save(); });
-
-          const meta = document.createElement('div');
-          meta.className = 'meta';
-          meta.textContent = task.column === 'backlog' ? 'Backlog' : task.column === 'doing' ? 'Sedang dikerjakan' : 'Selesai';
-
-          card.append(h, note, meta);
-
-          // Desktop DnD
-          card.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('text/plain', task.id);
-          });
-
-          // Mobile touch DnD
-          setupTouchDrag(card, task);
-
-          const zone = document.querySelector(`.dropzone[data-col="${task.column}"]`);
-          zone && zone.appendChild(card);
+        // Mobile sidebar toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+        });
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
         });
 
-      // Empty hints
-      document.querySelectorAll('.dropzone').forEach(z=>{
-        if(!z.children.length){
-          const tip = document.createElement('div');
-          tip.style.color = '#9ca3af';
-          tip.style.fontSize = '12px';
-          tip.textContent = 'Tarik kartu ke sini…';
-          z.appendChild(tip);
+        function initFirebase() {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    els.userEmailDisplay.textContent = user.email;
+                    kanbanCollectionRef = collection(db, `kanban/users/${userId}`); 
+                    isAuthReady = true;
+                    els.loading.style.display = 'none';
+                    els.board.style.display = 'flex';
+                    listenForTasks();
+                } else {
+                    isAuthReady = false;
+                    console.log('User signed out. Redirecting to login page.');
+                    window.location.href = 'login.html';
+                }
+            });
         }
-      });
-    }
+        
+        els.logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+            });
+        });
 
-    // DnD targets (desktop)
-    document.querySelectorAll('.dropzone').forEach(zone => {
-      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-      zone.addEventListener('drop', e => {
-        e.preventDefault();
-        zone.classList.remove('dragover');
-        const id = e.dataTransfer.getData('text/plain');
-        const t = state.find(x=>x.id===id);
-        if(t){ t.column = zone.dataset.col; save(); render(); }
-      });
-    });
-
-    // Touch drag helpers
-    let ghost = null, currentZone = null, scrollInterval = null;
-
-    function setupTouchDrag(card, task){
-      let longPressTimer = null;
-      let dragging = false;
-
-      const start = (x, y) => {
-        dragging = true;
-        ghost = card.cloneNode(true);
-        ghost.classList.add('ghost');
-        ghost.style.width = card.getBoundingClientRect().width + 'px';
-        document.body.appendChild(ghost);
-        positionGhost(x, y);
-      };
-
-      const end = () => {
-        clearInterval(scrollInterval); scrollInterval = null;
-        if(ghost){ ghost.remove(); ghost = null; }
-        if(currentZone){ currentZone.classList.remove('highlight'); currentZone = null; }
-        dragging = false;
-      };
-
-      const onTouchStart = (e) => {
-        if(e.touches.length !== 1) return;
-        const t = e.touches[0];
-        // long-press 120ms to start drag
-        longPressTimer = setTimeout(()=>{ start(t.clientX, t.clientY); }, 120);
-      };
-
-      const onTouchMove = (e) => {
-        if(e.touches.length !== 1) return;
-        const t = e.touches[0];
-        if(longPressTimer){ // moving before long-press: cancel long-press
-          clearTimeout(longPressTimer); longPressTimer = null;
+        function listenForTasks() {
+            onSnapshot(kanbanCollectionRef, (snapshot) => {
+                allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                render();
+            }, (error) => {
+                console.error("Error fetching tasks:", error);
+            });
         }
-        if(!ghost) return;
-        e.preventDefault(); // prevent page scroll while dragging
-        positionGhost(t.clientX, t.clientY);
-        const el = document.elementFromPoint(t.clientX, t.clientY);
-        const zone = el && el.closest ? el.closest('.dropzone') : null;
-        if(currentZone && currentZone !== zone){ currentZone.classList.remove('highlight'); }
-        if(zone){ zone.classList.add('highlight'); }
-        currentZone = zone;
-        autoScrollIfNeeded(t.clientX, t.clientY);
-      };
-
-      const onTouchEnd = () => {
-        clearTimeout(longPressTimer); longPressTimer = null;
-        if(ghost && currentZone){ task.column = currentZone.dataset.col; save(); render(); }
-        end();
-      };
-
-      card.addEventListener('touchstart', onTouchStart, {passive:true});
-      card.addEventListener('touchmove', onTouchMove, {passive:false});
-      card.addEventListener('touchend', onTouchEnd);
-      card.addEventListener('touchcancel', end);
-    }
-
-    function positionGhost(x, y){
-      if(!ghost) return;
-      const offset = 16; // cursor offset so finger tidak menutup kartu
-      ghost.style.transform = `translate(${x+offset}px, ${y+offset}px)`;
-    }
-
-    function autoScrollIfNeeded(x, y){
-      const boardRect = els.board.getBoundingClientRect();
-      const edge = 48; // px
-      let dx = 0;
-      if(x < boardRect.left + edge) dx = -12;
-      else if(x > boardRect.right - edge) dx = 12;
-
-      if(dx !== 0){
-        if(!scrollInterval){
-          scrollInterval = setInterval(()=>{ els.board.scrollLeft += dx; }, 16);
+        
+        function uid(){
+          return Math.random().toString(36).slice(2) + Date.now().toString(36);
         }
-      } else {
-        clearInterval(scrollInterval); scrollInterval = null;
-      }
-    }
 
-    // Controls
-    els.addBtn.addEventListener('click', ()=>{
-      const title = els.newTitle.value.trim();
-      if(!title) return els.newTitle.focus();
-      state.unshift(mk(title, '', els.newColumn.value));
-      els.newTitle.value = '';
-      save();
-      render();
-    });
+        function render(){
+            const q = els.search.value.trim().toLowerCase();
+            document.querySelectorAll('.dropzone').forEach(z => z.innerHTML = '');
+            
+            const filteredTasks = allTasks.filter(t => !q || (t.title + " " + (t.note || '')).toLowerCase().includes(q));
 
-    els.search.addEventListener('input', render);
-    els.resetBtn.addEventListener('click', ()=>{ els.search.value=''; render(); });
+            filteredTasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.draggable = true;
+                card.dataset.id = task.id;
 
-    // Import/Export
-    els.exportBtn.addEventListener('click', ()=>{
-      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `kanban-isekai-${new Date().toISOString().slice(0,10)}.json`;
-      a.click(); URL.revokeObjectURL(url);
-    });
+                const h = document.createElement('header');
+                const title = document.createElement('div');
+                title.className = 'title';
+                title.contentEditable = 'true';
+                title.innerText = task.title;
+                title.addEventListener('input', () => {
+                    updateDoc(doc(db, kanbanCollectionRef.path, task.id), {
+                        title: title.innerText,
+                        updatedAt: new Date()
+                    });
+                });
 
-    els.importBtn.addEventListener('click', ()=> els.importFile.click());
-    els.importFile.addEventListener('change', e => {
-      const f = e.target.files && e.target.files[0];
-      if(!f) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try{
-          const arr = JSON.parse(String(reader.result));
-          if(Array.isArray(arr)){
-            state = arr; save(); render();
-          } else alert('File tidak valid.');
-        }catch{ alert('Gagal membaca JSON.'); }
-      };
-      reader.readAsText(f);
-    });
+                const del = document.createElement('button');
+                del.className = 'del';
+                del.innerHTML = '<i class="fas fa-trash"></i> Hapus';
+                del.addEventListener('click', () => { 
+                    showConfirmModal('Apakah Anda yakin ingin menghapus tugas ini?', () => {
+                        deleteDoc(doc(db, kanbanCollectionRef.path, task.id));
+                    });
+                });
 
-    // First render
-    render();
-  </script>
+                h.append(title, del);
+
+                const note = document.createElement('textarea');
+                note.className = 'note';
+                note.placeholder = 'Catatan...';
+                note.value = task.note || '';
+                note.addEventListener('input', () => { 
+                    updateDoc(doc(db, kanbanCollectionRef.path, task.id), {
+                        note: note.value,
+                        updatedAt: new Date()
+                    });
+                });
+
+                const meta = document.createElement('div');
+                meta.className = 'meta';
+                meta.textContent = task.column === 'backlog' ? 'Backlog' : task.column === 'doing' ? 'Sedang dikerjakan' : 'Selesai';
+                
+                card.append(h, note, meta);
+
+                card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', task.id); });
+                setupTouchDrag(card, task);
+
+                const zone = document.querySelector(`.dropzone[data-col="${task.column}"]`);
+                zone && zone.appendChild(card);
+            });
+
+            document.querySelectorAll('.dropzone').forEach(z => {
+                if (!z.children.length) {
+                    const tip = document.createElement('div');
+                    tip.style.color = '#9ca3af';
+                    tip.style.fontSize = '12px';
+                    tip.textContent = 'Tarik kartu ke sini...';
+                    z.appendChild(tip);
+                }
+            });
+        }
+
+        // DnD targets (desktop)
+        document.querySelectorAll('.dropzone').forEach(zone => {
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.classList.remove('dragover');
+                const id = e.dataTransfer.getData('text/plain');
+                const t = allTasks.find(x => x.id === id);
+                if (t && isAuthReady) { 
+                    updateDoc(doc(db, kanbanCollectionRef.path, t.id), {
+                        column: zone.dataset.col,
+                        updatedAt: new Date()
+                    });
+                }
+            });
+        });
+
+        // Touch drag helpers
+        let ghost = null, currentZone = null, scrollInterval = null;
+
+        function setupTouchDrag(card, task){
+            let longPressTimer = null;
+
+            const start = (x, y) => {
+                ghost = card.cloneNode(true);
+                ghost.classList.add('ghost');
+                ghost.style.width = card.getBoundingClientRect().width + 'px';
+                document.body.appendChild(ghost);
+                positionGhost(x, y);
+            };
+
+            const end = () => {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
+                if (ghost) { 
+                  ghost.remove(); 
+                  ghost = null; 
+                }
+                if (currentZone) { 
+                  currentZone.classList.remove('highlight'); 
+                  currentZone = null; 
+                }
+            };
+
+            const onTouchStart = (e) => {
+                if (e.touches.length !== 1) return;
+                const t = e.touches[0];
+                longPressTimer = setTimeout(() => { start(t.clientX, t.clientY); }, 120);
+            };
+
+            const onTouchMove = (e) => {
+                if (e.touches.length !== 1) return;
+                const t = e.touches[0];
+                if (longPressTimer) { 
+                  clearTimeout(longPressTimer); 
+                  longPressTimer = null; 
+                }
+                if (!ghost) return;
+                e.preventDefault();
+                positionGhost(t.clientX, t.clientY);
+                const el = document.elementFromPoint(t.clientX, t.clientY);
+                const zone = el && el.closest ? el.closest('.dropzone') : null;
+                if (currentZone && currentZone !== zone) { 
+                  currentZone.classList.remove('highlight'); 
+                }
+                if (zone) { 
+                  zone.classList.add('highlight'); 
+                }
+                currentZone = zone;
+                autoScrollIfNeeded(t.clientX, t.clientY);
+            };
+
+            const onTouchEnd = () => {
+                clearTimeout(longPressTimer); 
+                longPressTimer = null;
+                if (ghost && currentZone && isAuthReady) { 
+                    updateDoc(doc(db, kanbanCollectionRef.path, task.id), {
+                        column: currentZone.dataset.col,
+                        updatedAt: new Date()
+                    });
+                }
+                end();
+            };
+
+            card.addEventListener('touchstart', onTouchStart, {passive:true});
+            card.addEventListener('touchmove', onTouchMove, {passive:false});
+            card.addEventListener('touchend', onTouchEnd);
+            card.addEventListener('touchcancel', end);
+        }
+
+        function positionGhost(x, y){
+            if(!ghost) return;
+            const offset = 16;
+            ghost.style.transform = `translate(${x + offset}px, ${y + offset}px)`;
+        }
+
+        function autoScrollIfNeeded(x, y){
+            const boardRect = els.board.getBoundingClientRect();
+            const edge = 48;
+            let dx = 0;
+            if(x < boardRect.left + edge) dx = -12;
+            else if(x > boardRect.right - edge) dx = 12;
+
+            if(dx !== 0){
+                if(!scrollInterval){
+                    scrollInterval = setInterval(()=>{ els.board.scrollLeft += dx; }, 16);
+                }
+            } else {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
+            }
+        }
+
+        // Custom Confirm Modal
+        function showConfirmModal(message, onConfirm) {
+            const existingModal = document.getElementById('customConfirmModal');
+            if (existingModal) existingModal.remove();
+
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'customConfirmModal';
+            modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'bg-white rounded-2xl shadow-xl w-full max-w-sm p-6';
+
+            const messageP = document.createElement('p');
+            messageP.className = 'text-slate-700 text-lg mb-6';
+            messageP.textContent = message;
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'flex justify-end gap-4';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'Batal';
+            cancelBtn.className = 'bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = 'Hapus';
+            confirmBtn.className = 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition';
+
+            buttonContainer.appendChild(cancelBtn);
+            buttonContainer.appendChild(confirmBtn);
+            modalContent.appendChild(messageP);
+            modalContent.appendChild(buttonContainer);
+            modalOverlay.appendChild(modalContent);
+            document.body.appendChild(modalOverlay);
+
+            const closeModal = () => modalOverlay.remove();
+            
+            cancelBtn.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+            confirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeModal();
+            });
+        }
+
+        // Controls
+        els.addBtn.addEventListener('click', ()=>{
+            const title = els.newTitle.value.trim();
+            if(!title) return els.newTitle.focus();
+            
+            if (isAuthReady) {
+                addDoc(kanbanCollectionRef, {
+                    title: title,
+                    note: '',
+                    column: els.newColumn.value,
+                    createdAt: new Date()
+                });
+            } else {
+                console.log("Authentication not ready. Cannot add task.");
+            }
+
+            els.newTitle.value = '';
+        });
+
+        els.search.addEventListener('input', render);
+        els.resetBtn.addEventListener('click', ()=>{ 
+          els.search.value = ''; 
+          render(); 
+        });
+
+        // Import/Export
+        els.exportBtn.addEventListener('click', ()=>{
+            const blob = new Blob([JSON.stringify(allTasks, null, 2)], {type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; 
+            a.download = `kanban-isekai-${new Date().toISOString().slice(0,10)}.json`;
+            a.click(); 
+            URL.revokeObjectURL(url);
+        });
+
+        els.importBtn.addEventListener('click', ()=> els.importFile.click());
+        els.importFile.addEventListener('change', e => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const arr = JSON.parse(String(reader.result));
+                    if (Array.isArray(arr) && isAuthReady) {
+                        arr.forEach(task => {
+                            const { id, ...data } = task;
+                            addDoc(kanbanCollectionRef, data);
+                        });
+                        console.log("Tasks imported successfully.");
+                    } else {
+                        // Use a custom message box instead of alert()
+                        const modal = document.createElement('div');
+                        modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);z-index:100;';
+                        modal.innerHTML = 'File tidak valid. <br><button onclick="this.parentNode.remove()">OK</button>';
+                        document.body.appendChild(modal);
+                    }
+                } catch { 
+                    const modal = document.createElement('div');
+                    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);z-index:100;';
+                    modal.innerHTML = 'Gagal membaca JSON. <br><button onclick="this.parentNode.remove()">OK</button>';
+                    document.body.appendChild(modal);
+                }
+            };
+            reader.readAsText(f);
+        });
+
+        // Initial setup
+        els.loading.style.display = 'flex';
+        els.board.style.display = 'none';
+        initFirebase();
+    </script>
 </body>
 </html>
