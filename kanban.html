@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kanban Sederhana – Isekai Roblox</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--accent:#111827;--radius:14px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    header{position:sticky;top:0;background:#ffffffcc;backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid var(--line)}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
+    h1{margin:0;font-size:18px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    input,select,button,textarea{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;background:#fff}
+    button{cursor:pointer}
+    button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+    /* --- Board: mobile-first horizontal scroll with column min-width --- */
+    .board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,1fr);gap:12px;margin-top:16px;overflow-x:auto;padding-bottom:6px}
+    .board::-webkit-scrollbar{height:8px}
+    .board::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:999px}
+    @media (min-width:880px){.board{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow-x:visible}}
+
+    .col{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;min-height:56vh;display:flex;flex-direction:column}
+    .col h3{margin:0 0 8px 0;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+    .dropzone{flex:1;display:flex;flex-direction:column;gap:8px}
+    .dropzone.dragover,.dropzone.highlight{outline:2px dashed #9ca3af;outline-offset:4px;background:#fafafa}
+
+    .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;cursor:grab;touch-action:none}
+    .card:active{cursor:grabbing}
+    .card header{display:flex;justify-content:space-between;align-items:center;border:0;background:transparent;backdrop-filter:none;position:static}
+    .title[contenteditable]{outline:0}
+    .meta{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:12px;margin-top:6px}
+    .del{border:none;background:#fef2f2;color:#b91c1c;border-radius:8px;padding:4px 8px}
+    .note{width:100%;margin-top:8px;resize:vertical}
+
+    /* Ghost card for touch drag */
+    .ghost{position:fixed;top:0;left:0;pointer-events:none;opacity:.9;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15);width:280px}
+
+    footer{color:var(--muted);text-align:center;margin:18px 0}
+    .howto{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:16px 0}
+    .howto h2{margin-top:0;font-size:16px}
+    .howto ol{padding-left:20px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Kanban Sederhana – Isekai Roblox</h1>
+      <div class="toolbar">
+        <input id="newTitle" placeholder="Judul task (mis. Title Screen)" />
+        <select id="newColumn">
+          <option value="backlog">Backlog</option>
+          <option value="doing">Sedang Dikerjakan</option>
+          <option value="done">Selesai</option>
+        </select>
+        <button class="primary" id="addBtn">+ Tambah</button>
+        <input id="search" placeholder="Cari…" />
+        <button id="resetBtn">Reset</button>
+        <button id="exportBtn">Export JSON</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" />
+        <button id="importBtn">Import JSON</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="board" id="board">
+      <section class="col" data-col="backlog">
+        <h3>Backlog</h3>
+        <div class="dropzone" data-col="backlog"></div>
+      </section>
+      <section class="col" data-col="doing">
+        <h3>Sedang Dikerjakan</h3>
+        <div class="dropzone" data-col="doing"></div>
+      </section>
+      <section class="col" data-col="done">
+        <h3>Selesai</h3>
+        <div class="dropzone" data-col="done"></div>
+      </section>
+    </div>
+
+    <section class="howto">
+      <h2>📖 Cara Menggunakan</h2>
+      <ol>
+        <li>Ketik judul task di kotak "Judul task" → pilih kolom (Backlog / Sedang Dikerjakan / Selesai) → klik <b>+ Tambah</b>.</li>
+        <li><b>Backlog</b> adalah daftar ide atau pekerjaan yang belum dikerjakan. Semua task baru biasanya masuk ke sini dulu sebelum dipindahkan ke kolom lain.</li>
+        <li>Geser kartu (drag & drop) ke kolom lain untuk update status task. <b>Mobile:</b> tekan-tahan kartu sebentar lalu seret, kolom akan tersorot.</li>
+        <li>Edit judul langsung di kartu (klik teks judul). Tambahkan catatan di textarea bawah judul.</li>
+        <li>Klik tombol <b>Hapus</b> untuk menghapus task.</li>
+        <li>Gunakan kotak <b>Cari</b> untuk memfilter task → klik <b>Reset</b> untuk menampilkan semua kembali.</li>
+        <li>Klik <b>Export JSON</b> untuk menyimpan semua task ke file .json. Bisa diimpor lagi dengan <b>Import JSON</b>.</li>
+        <li>Semua data otomatis tersimpan di browser (localStorage).</li>
+        <li><b>Tips mobile:</b> Board bisa digeser secara horizontal untuk melihat semua kolom.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="wrap">Data tersimpan di browser (localStorage). Dibuat untuk proyek Isekai Roblox milik Tuan Cecep.</footer>
+
+  <script>
+    const STORAGE_KEY = "kanban_isekai_simple_v1";
+    const els = {
+      newTitle: document.getElementById('newTitle'),
+      newColumn: document.getElementById('newColumn'),
+      addBtn: document.getElementById('addBtn'),
+      search: document.getElementById('search'),
+      resetBtn: document.getElementById('resetBtn'),
+      exportBtn: document.getElementById('exportBtn'),
+      importBtn: document.getElementById('importBtn'),
+      importFile: document.getElementById('importFile'),
+      board: document.getElementById('board'),
+    };
+
+    function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
+
+    function load(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw){
+        // Seed tugas awal sesuai konsep isekai
+        return [
+          mk('Title Screen', 'Tombol Play/Settings/Credits, nuansa isekai', 'backlog'),
+          mk('Cutscene: Spawn bawah air', 'Muncul di bawah air → naik → ke Town Square', 'backlog'),
+          mk('Town Square Map', 'Alun-alun, papan quest, portal Tower', 'doing'),
+          mk('NPC Quest Master', 'Dialog awal + beri main quest', 'doing'),
+          mk('Simpan Progress (DataStore)', 'Level, achievement, inventory', 'backlog'),
+          mk('Combat dasar ala SAO', 'Anim swing pedang, hitbox, dummy slime', 'backlog'),
+        ];
+      }
+      try{return JSON.parse(raw)}catch(e){return []}
+    }
+
+    function save(){localStorage.setItem(STORAGE_KEY, JSON.stringify(state))}
+
+    function mk(title, note, column){
+      return {id: uid(), title, note, column};
+    }
+
+    let state = load();
+
+    function render(){
+      const q = els.search.value.trim().toLowerCase();
+      // Clear zones
+      document.querySelectorAll('.dropzone').forEach(z=>z.innerHTML='');
+
+      state
+        .filter(t => !q || (t.title+" "+(t.note||'')).toLowerCase().includes(q))
+        .forEach(task => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.draggable = true; // desktop HTML5 DnD
+          card.dataset.id = task.id;
+
+          const h = document.createElement('header');
+          const title = document.createElement('div');
+          title.className = 'title';
+          title.contentEditable = 'true';
+          title.innerText = task.title;
+          title.addEventListener('input', ()=>{ task.title = title.innerText; save(); });
+
+          const del = document.createElement('button');
+          del.className = 'del';
+          del.textContent = 'Hapus';
+          del.addEventListener('click', ()=>{ state = state.filter(t=>t.id!==task.id); save(); render(); });
+
+          h.append(title, del);
+
+          const note = document.createElement('textarea');
+          note.className = 'note';
+          note.placeholder = 'Catatan…';
+          note.value = task.note||'';
+          note.addEventListener('input', ()=>{ task.note = note.value; save(); });
+
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.textContent = task.column === 'backlog' ? 'Backlog' : task.column === 'doing' ? 'Sedang dikerjakan' : 'Selesai';
+
+          card.append(h, note, meta);
+
+          // Desktop DnD
+          card.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text/plain', task.id);
+          });
+
+          // Mobile touch DnD
+          setupTouchDrag(card, task);
+
+          const zone = document.querySelector(`.dropzone[data-col="${task.column}"]`);
+          zone && zone.appendChild(card);
+        });
+
+      // Empty hints
+      document.querySelectorAll('.dropzone').forEach(z=>{
+        if(!z.children.length){
+          const tip = document.createElement('div');
+          tip.style.color = '#9ca3af';
+          tip.style.fontSize = '12px';
+          tip.textContent = 'Tarik kartu ke sini…';
+          z.appendChild(tip);
+        }
+      });
+    }
+
+    // DnD targets (desktop)
+    document.querySelectorAll('.dropzone').forEach(zone => {
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const id = e.dataTransfer.getData('text/plain');
+        const t = state.find(x=>x.id===id);
+        if(t){ t.column = zone.dataset.col; save(); render(); }
+      });
+    });
+
+    // Touch drag helpers
+    let ghost = null, currentZone = null, scrollInterval = null;
+
+    function setupTouchDrag(card, task){
+      let longPressTimer = null;
+      let dragging = false;
+
+      const start = (x, y) => {
+        dragging = true;
+        ghost = card.cloneNode(true);
+        ghost.classList.add('ghost');
+        ghost.style.width = card.getBoundingClientRect().width + 'px';
+        document.body.appendChild(ghost);
+        positionGhost(x, y);
+      };
+
+      const end = () => {
+        clearInterval(scrollInterval); scrollInterval = null;
+        if(ghost){ ghost.remove(); ghost = null; }
+        if(currentZone){ currentZone.classList.remove('highlight'); currentZone = null; }
+        dragging = false;
+      };
+
+      const onTouchStart = (e) => {
+        if(e.touches.length !== 1) return;
+        const t = e.touches[0];
+        // long-press 120ms to start drag
+        longPressTimer = setTimeout(()=>{ start(t.clientX, t.clientY); }, 120);
+      };
+
+      const onTouchMove = (e) => {
+        if(e.touches.length !== 1) return;
+        const t = e.touches[0];
+        if(longPressTimer){ // moving before long-press: cancel long-press
+          clearTimeout(longPressTimer); longPressTimer = null;
+        }
+        if(!ghost) return;
+        e.preventDefault(); // prevent page scroll while dragging
+        positionGhost(t.clientX, t.clientY);
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        const zone = el && el.closest ? el.closest('.dropzone') : null;
+        if(currentZone && currentZone !== zone){ currentZone.classList.remove('highlight'); }
+        if(zone){ zone.classList.add('highlight'); }
+        currentZone = zone;
+        autoScrollIfNeeded(t.clientX, t.clientY);
+      };
+
+      const onTouchEnd = () => {
+        clearTimeout(longPressTimer); longPressTimer = null;
+        if(ghost && currentZone){ task.column = currentZone.dataset.col; save(); render(); }
+        end();
+      };
+
+      card.addEventListener('touchstart', onTouchStart, {passive:true});
+      card.addEventListener('touchmove', onTouchMove, {passive:false});
+      card.addEventListener('touchend', onTouchEnd);
+      card.addEventListener('touchcancel', end);
+    }
+
+    function positionGhost(x, y){
+      if(!ghost) return;
+      const offset = 16; // cursor offset so finger tidak menutup kartu
+      ghost.style.transform = `translate(${x+offset}px, ${y+offset}px)`;
+    }
+
+    function autoScrollIfNeeded(x, y){
+      const boardRect = els.board.getBoundingClientRect();
+      const edge = 48; // px
+      let dx = 0;
+      if(x < boardRect.left + edge) dx = -12;
+      else if(x > boardRect.right - edge) dx = 12;
+
+      if(dx !== 0){
+        if(!scrollInterval){
+          scrollInterval = setInterval(()=>{ els.board.scrollLeft += dx; }, 16);
+        }
+      } else {
+        clearInterval(scrollInterval); scrollInterval = null;
+      }
+    }
+
+    // Controls
+    els.addBtn.addEventListener('click', ()=>{
+      const title = els.newTitle.value.trim();
+      if(!title) return els.newTitle.focus();
+      state.unshift(mk(title, '', els.newColumn.value));
+      els.newTitle.value = '';
+      save();
+      render();
+    });
+
+    els.search.addEventListener('input', render);
+    els.resetBtn.addEventListener('click', ()=>{ els.search.value=''; render(); });
+
+    // Import/Export
+    els.exportBtn.addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `kanban-isekai-${new Date().toISOString().slice(0,10)}.json`;
+      a.click(); URL.revokeObjectURL(url);
+    });
+
+    els.importBtn.addEventListener('click', ()=> els.importFile.click());
+    els.importFile.addEventListener('change', e => {
+      const f = e.target.files && e.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const arr = JSON.parse(String(reader.result));
+          if(Array.isArray(arr)){
+            state = arr; save(); render();
+          } else alert('File tidak valid.');
+        }catch{ alert('Gagal membaca JSON.'); }
+      };
+      reader.readAsText(f);
+    });
+
+    // First render
+    render();
+  </script>
+</body>
+</html>
