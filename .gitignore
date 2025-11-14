@@ -31,3 +31,6 @@ Thumbs.db
 # File konfigurasi editor
 .vscode/
 .idea/
+
+# Local Netlify folder
+.netlify
