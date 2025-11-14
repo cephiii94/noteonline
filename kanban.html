@@ -354,19 +354,18 @@
         
         let allTasks = [];
 
-        // Mobile sidebar toggle
+// Mobile sidebar toggle
         const menuToggle = document.getElementById('menu-toggle');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
         menuToggle.addEventListener('click', () => {
-            sidebar.classList.remove('-translate-x-full');
-            sidebarOverlay.classList.remove('hidden');
+            // Kita ganti .remove() menjadi .toggle()
+            // .toggle() akan 'menambahkan' class jika tidak ada, 
+            // dan 'menghapus' class jika sudah ada.
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
         });
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            sidebarOverlay.classList.add('hidden');
-        });
-
+        
         function initFirebase() {
             onAuthStateChanged(auth, (user) => {
                 if (user) {

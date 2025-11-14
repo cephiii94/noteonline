@@ -1,0 +1,165 @@
+/* login.css */
+
+/* Pengaturan dasar untuk body */
+body.login-body {
+  font-family: 'Inter', sans-serif;
+  /* Menggunakan warna dari style.css Tuan Cecep (bg-soft-blue) */
+  background-color: #F8F9FD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+/* Kartu utama untuk login dan register */
+.auth-card {
+  background-color: #FFFFFF;
+  width: 100%;
+  max-width: 448px; /* Ini setara dengan max-w-md */
+  padding: 2rem; /* setara p-8 */
+  border-radius: 1rem; /* setara rounded-2xl */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* setara shadow-lg */
+  border: 1px solid #E5E9F2; /* border-blue-100 */
+}
+
+/* Header di dalam kartu (Judul dan sub-judul) */
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem; /* setara mb-8 */
+}
+
+.auth-header h1 {
+  font-size: 1.875rem; /* setara text-3xl */
+  font-weight: 700; /* setara font-bold */
+  color: #1e40af; /* setara text-blue-800 */
+}
+
+.auth-header p {
+  color: #64748b; /* setara text-slate-500 */
+  margin-top: 0.5rem; /* setara mt-2 */
+}
+
+/* Grup form (label + input) */
+.form-group {
+  margin-bottom: 1rem; /* setara mb-4 */
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem; /* setara text-sm */
+  font-weight: 500; /* setara font-medium */
+  color: #334155; /* setara text-slate-700 */
+  margin-bottom: 0.25rem; /* setara mb-1 */
+}
+
+/* Input form */
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem; /* setara px-4 py-3 */
+  border: 1px solid #bfdbfe; /* setara border-blue-200 */
+  border-radius: 0.5rem; /* setara rounded-lg */
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6; /* Aksi dari focus:ring-blue-400 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); /* Aksi dari focus:ring-2 */
+}
+
+/* Tombol */
+.btn {
+  width: 100%;
+  font-weight: 700; /* setara font-bold */
+  padding: 0.75rem 1rem; /* setara py-3 px-4 */
+  border-radius: 0.5rem; /* setara rounded-lg */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem; /* setara gap-3 */
+}
+
+.btn-primary {
+  background-color: #3b82f6; /* setara bg-blue-500 */
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb; /* setara hover:bg-blue-600 */
+}
+
+/* Tombol Google */
+.btn-google {
+  background-color: white;
+  border: 1px solid #cbd5e1; /* setara border-slate-300 */
+  color: #334155; /* setara text-slate-700 */
+  font-weight: 600; /* setara font-semibold */
+}
+
+.btn-google:hover {
+  background-color: #f8fafc; /* setara hover:bg-slate-50 */
+}
+
+.btn-google img {
+  height: 1.25rem; /* setara h-5 */
+}
+
+/* Pemisah "ATAU" */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0; /* setara my-6 */
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex-grow: 1;
+  border-top: 1px solid #cbd5e1; /* setara border-slate-300 */
+}
+
+.divider span {
+  flex-shrink: 0;
+  margin: 0 1rem; /* setara mx-4 */
+  color: #94a3b8; /* setara text-slate-400 */
+  font-size: 0.875rem; /* setara text-sm */
+}
+
+/* Link untuk pindah halaman (Daftar/Masuk) */
+.auth-toggle {
+  text-align: center;
+  font-size: 0.875rem; /* setara text-sm */
+  color: #475569; /* setara text-slate-600 */
+  margin-top: 2rem; /* setara mt-8 */
+}
+
+.auth-toggle a {
+  font-weight: 600; /* setara font-semibold */
+  color: #2563eb; /* setara text-blue-600 */
+  text-decoration: none;
+}
+
+.auth-toggle a:hover {
+  text-decoration: underline;
+}
+
+/* Pesan Error */
+.error-message {
+  text-align: center;
+  color: #ef4444; /* setara text-red-500 */
+  font-size: 0.875rem; /* setara text-sm */
+  margin-top: 1rem; /* setara mt-4 */
+  height: 1rem; /* setara h-4 */
+}
+
+/* Aturan untuk menyembunyikan/menampilkan halaman */
+.hidden {
+  display: none;
+}

@@ -4,209 +4,210 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- PWA Tags -->
     <meta name="theme-color" content="#2563EB"/>
     <link rel="manifest" href="manifest.json">
     
     <title>NoteOnline - Catatan Online Anda</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="style/style.css">
 </head>
-<body class="relative md:flex h-screen overflow-hidden">
+<body class="page-container">
 
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <aside id="sidebar" class="sidebar w-64 flex-shrink-0 flex flex-col p-6 fixed md:relative inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-30">
-        <div class="text-2xl font-bold text-blue-800 mb-10">Notonlen</div>
-        <nav class="flex flex-col gap-2">
-            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Menu</p>
-            <a href="#" data-category="All" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50 active-link">
-                <i class="fas fa-grip-horizontal w-5 text-center text-slate-500"></i>
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-logo">Notonlen</div>
+        
+        <nav class="nav-menu">
+            <p class="nav-menu-title">Menu</p>
+            <a href="#" data-category="All" class="nav-link category-filter active-link">
+                <i class="fas fa-grip-horizontal icon"></i>
                 <span>Semua Catatan</span>
             </a>
         </nav>
-        <nav class="flex flex-col gap-2 mt-6">
-            <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Kategori</p>
-            <a href="#" data-category="Personal" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
-                <span class="w-5 text-center">&#x1F4CB;</span>
+        
+        <nav class="nav-menu">
+            <p class="nav-menu-title">Kategori</p>
+            <a href="#" data-category="Personal" class="nav-link category-filter">
+                <span class="emoji">&#x1F4CB;</span>
                 <span>Personal</span>
             </a>
-            <a href="#" data-category="Bisnis" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
-                <span class="w-5 text-center">&#x1F4C8;</span>
+            <a href="#" data-category="Bisnis" class="nav-link category-filter">
+                <span class="emoji">&#x1F4C8;</span>
                 <span>Bisnis</span>
             </a>
-            <a href="#" data-category="Proyek" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
-                <span class="w-5 text-center">&#x1F4C1;</span>
+            <a href="#" data-category="Proyek" class="nav-link category-filter">
+                <span class="emoji">&#x1F4C1;</span>
                 <span>Proyek</span>
             </a>
          </nav>
-         <nav class="flex flex-col gap-2 mt-6">            
-             <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Shortcut</p>
-            <a href="/kanban.html" class="category-filter flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
-            <a href="/kanban.html" class="flex items-center gap-3 px-4 py-2 rounded-lg text-slate-700 hover:bg-blue-50">
-                 <span class="w-5 text-center">&#x1F4CB;</span>
+         
+         <nav class="nav-menu">            
+             <p class="nav-menu-title">Shortcut</p>
+            <a href="/kanban.html" class="nav-link">
+                 <span class="emoji">&#x1F4CB;</span>
                  <span>Kanban</span>
-                         </a>
+            </a>
         </nav>
         
-        <!-- Perubahan: Tombol Install PWA dipindahkan ke sini -->
-        <nav id="installAppContainer" class="flex flex-col gap-2 mt-6 hidden">
-             <p class="px-4 text-sm font-semibold text-slate-400 uppercase">Aplikasi</p>
-            <a href="#" id="installAppSidebarBtn" class="flex items-center gap-3 px-4 py-2 rounded-lg text-green-700 bg-green-50 hover:bg-green-100">
-                <i class="fas fa-download w-5 text-center text-green-600"></i>
+        <nav id="installAppContainer" class="nav-menu hidden">
+             <p class="nav-menu-title">Aplikasi</p>
+            <a href="#" id="installAppSidebarBtn" class="nav-link">
+                <i class="fas fa-download icon"></i>
                 <span>Install Aplikasi</span>
             </a>
         </nav>
-        <div class="mt-auto text-center text-xs text-slate-400">
+        
+        <div class="sidebar-footer">
             <p>&copy; 2025 Notonlen</p>
         </div>
     </aside>
 
-    <main class="main-content flex-1 flex flex-col h-screen overflow-y-auto">
-        <header class="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 bg-white sticky top-0 z-10 gap-4">
-            <div class="flex items-center">
-                <button id="menu-toggle" class="md:hidden text-slate-600 hover:text-blue-600 mr-2">
-                    <i class="fas fa-bars text-xl"></i>
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button id="menu-toggle" class="menu-toggle-btn">
+                    <i class="fas fa-bars"></i>
                 </button>
-                <div class="relative hidden sm:block">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="search" id="searchInput" placeholder="Search..." class="w-full md:w-64 lg:w-96 pl-12 pr-4 py-2.5 bg-slate-100 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                <div class="search-bar">
+                    <i class="fas fa-search icon"></i>
+                    <input type="search" id="searchInput" placeholder="Search..." class="search-input">
                 </div>
             </div>
-            <div class="relative flex-1 sm:hidden">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="search" id="mobileSearchInput" placeholder="Search..." class="w-full pl-12 pr-4 py-2.5 bg-slate-100 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+            
+            <div class="search-bar-mobile">
+                <i class="fas fa-search icon"></i>
+                <input type="search" id="mobileSearchInput" placeholder="Search..." class="search-input">
             </div>
-            <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                <!-- Perubahan: Tombol Install PWA dihapus dari header -->
-                <div id="userInfo" class="text-sm text-slate-600 text-right">
-                    <p class="font-semibold" id="userNameDisplay">Memuat...</p>
-                    <p class="text-xs hidden sm:block" id="userEmailDisplay"></p>
+            
+            <div class="header-right">
+                <div id="userInfo" class="user-info">
+                    <p class="user-info-name" id="userNameDisplay">Memuat...</p>
+                    <p class="user-info-email" id="userEmailDisplay"></p>
                 </div>
-                <button id="logoutBtn" class="bg-red-100 hover:bg-red-200 text-red-600 font-semibold py-2 px-3 sm:px-4 rounded-lg text-sm transition flex items-center gap-2">
+                <button id="logoutBtn" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span class="hidden sm:inline">Keluar</span>
+                    <span class="text">Keluar</span>
                 </button>
             </div>
         </header>
 
-        <div class="p-4 md:p-6 flex-1">
-            <div class="flex justify-between items-center mb-6">
-                <h1 id="notesHeader" class="text-2xl font-bold text-slate-800">Semua Catatan</h1>
-                <!-- PERUBAHAN: Tombol ini sekarang disembunyikan secara permanen -->
-                <button id="openAddModalBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hidden items-center gap-2 transition">
+        <div class="notes-area">
+            <div class="notes-header-bar">
+                <h1 id="notesHeader" class="notes-title">Semua Catatan</h1>
+                <button id="openAddModalBtn" class="btn btn-primary hidden">
                     <i class="fas fa-plus"></i><span>Tambah Catatan</span>
                 </button>
             </div>
-            <div id="notesList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                <p id="loadingMessage" class="text-slate-500 col-span-full text-center">Memuat catatan...</p>
+            
+            <div id="notesList" class="notes-grid">
+                <p id="loadingMessage" class="notes-empty-message">Memuat catatan...</p>
             </div>
         </div>
     </main>
     
-    <!-- PERUBAHAN: class 'sm:hidden' dihapus agar tombol ini muncul di semua ukuran layar -->
-    <!-- PERUBAHAN: Ikon diubah dari 'fa-pen' menjadi 'fa-plus' -->
-    <button id="openAddModalBtnMobile" class="fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 z-20" title="Tambah Catatan Baru">
-        <i class="fas fa-plus text-xl"></i>
+    <button id="openAddModalBtnMobile" class="fab-add" title="Tambah Catatan Baru">
+        <i class="fas fa-plus"></i>
     </button>
 
-    <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col max-h-[90vh]">
-            <div class="flex-shrink-0 p-6 border-b border-slate-200">
-                <h2 class="text-2xl font-semibold text-blue-700">Buat Catatan Baru</h2>
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Buat Catatan Baru</h2>
             </div>
     
-            <div class="flex-1 overflow-y-auto">
-                <form id="addNoteForm" class="p-6">
-                    <input type="text" id="noteTitle" placeholder="Judul Catatan..." class="w-full px-4 py-3 mb-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required>
-                    <div id="add-editor" class="mb-4"></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select id="noteCategory" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+            <div class="modal-body">
+                <form id="addNoteForm">
+                    <input type="text" id="noteTitle" placeholder="Judul Catatan..." class="form-input" required>
+                    <div id="add-editor" class="form-input"></div>
+                    
+                    <div class="form-grid">
+                        <select id="noteCategory" class="form-input">
                             <option value="Personal">Personal</option>
                             <option value="Bisnis">Bisnis</option>
                             <option value="Proyek">Proyek</option>
                         </select>
-                        <input type="text" id="noteTags" placeholder="Tags (dipisah koma)..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                        <input type="url" id="noteLink" placeholder="Tautan Produk (Opsional)..." class="w-full md:col-span-2 px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                        <input type="text" id="noteTags" placeholder="Tags (dipisah koma)..." class="form-input">
+                        <input type="url" id="noteLink" placeholder="Tautan Produk (Opsional)..." class="form-input form-grid-span-2">
                     </div>
                 </form>
             </div>
     
-            <div class="flex-shrink-0 flex justify-end gap-4 p-6 border-t border-slate-200">
-                <button type="button" id="cancelAdd" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition">Batal</button>
-                <button type="submit" form="addNoteForm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan</button>
+            <div class="modal-footer">
+                <button type="button" id="cancelAdd" class="btn btn-secondary">Batal</button>
+                <button type="submit" form="addNoteForm" class="btn btn-primary">Simpan</button>
             </div>
         </div>
     </div>
     
-    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl flex flex-col max-h-[90vh]">
-            <div class="flex-shrink-0 p-6 border-b border-slate-200">
-                <h2 class="text-2xl font-semibold text-blue-700">Edit Catatan</h2>
+    <div id="editModal" class="modal-overlay">
+         <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Catatan</h2>
             </div>
             
-            <div class="flex-1 overflow-y-auto">
-                <form id="editNoteForm" class="p-6">
+            <div class="modal-body">
+                <form id="editNoteForm">
                     <input type="hidden" id="editNoteId">
-                    <input type="text" id="editNoteTitle" placeholder="Judul Catatan" class="w-full px-4 py-3 mb-4 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition" required>
-                    <div id="edit-editor" class="mb-4"></div>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <select id="editNoteCategory" class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                    <input type="text" id="editNoteTitle" placeholder="Judul Catatan" class="form-input" required>
+                    <div id="edit-editor" class="form-input"></div>
+                     <div class="form-grid">
+                        <select id="editNoteCategory" class="form-input">
                             <option value="Personal">Personal</option>
                             <option value="Bisnis">Bisnis</option>
                             <option value="Proyek">Proyek</option>
                         </select>
-                        <input type="text" id="editNoteTags" placeholder="Tags (dipisah koma)..." class="w-full px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
-                        <input type="url" id="editNoteLink" placeholder="Tautan Produk (Opsional)..." class="w-full md:col-span-2 px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition">
+                        <input type="text" id="editNoteTags" placeholder="Tags (dipisah koma)..." class="form-input">
+                        <input type="url" id="editNoteLink" placeholder="Tautan Produk (Opsional)..." class="form-input form-grid-span-2">
                     </div>
                 </form>
             </div>
     
-            <div class="flex-shrink-0 flex justify-end gap-4 p-6 border-t border-slate-200">
-                <button type="button" id="cancelEdit" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2 px-6 rounded-lg transition">Batal</button>
-                <button type="submit" form="editNoteForm" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition">Simpan Perubahan</button>
+            <div class="modal-footer">
+                <button type="button" id="cancelEdit" class="btn btn-secondary">Batal</button>
+                <button type="submit" form="editNoteForm" class="btn btn-primary">Simpan Perubahan</button>
             </div>
         </div>
     </div>
 
-    <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-3xl flex flex-col relative" style="max-height: 90vh;">
-            <div class="flex-shrink-0 p-6 border-b border-slate-200">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h2 id="viewNoteTitle" class="text-2xl font-bold text-slate-800 mb-1"></h2>
-                        <p id="viewNoteDate" class="text-sm text-slate-400"></p>
-                    </div>
-                    <button id="closeView" class="text-slate-400 hover:text-red-500 w-8 h-8 rounded-full hover:bg-red-100 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+    <div id="viewModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 896px;"> <div class="modal-header">
+                <div class="view-title-group">
+                    <h2 id="viewNoteTitle"></h2>
+                    <p id="viewNoteDate"></p>
                 </div>
-                <div class="flex items-center gap-4 mt-4 text-sm">
-                    <span id="viewNoteCategory" class="font-semibold text-blue-600 px-3 py-1 bg-blue-100 rounded-full"></span>
-                    <div id="viewNoteTags" class="flex flex-wrap gap-2"></div>
-                </div>
+                <button id="closeView" class="modal-close-btn"><i class="fas fa-times"></i></button>
             </div>
-            <div class="flex-1 overflow-y-auto">
-                <div id="viewNoteContent" class="note-view-content text-slate-700 p-6"></div>
-                <div id="productLinkContainer" class="p-6 border-t border-slate-200 hidden">
-                    <p class="text-sm font-semibold text-slate-500 uppercase mb-2">Tautan Produk</p>
-                    <a id="viewProductLink" href="#" target="_blank" class="text-blue-500 hover:underline">Buka Tautan Produk</a>
+            
+            <div class="view-meta-group" style="padding: 0 1.5rem;">
+                <span id="viewNoteCategory"></span>
+                <div id="viewNoteTags"></div>
+            </div>
+            
+            <div class="modal-body" style="padding-top: 1rem;">
+                <div id="viewNoteContent" class="note-view-content"></div>
+                
+                <div id="productLinkContainer" class="hidden" style="margin-top: 1rem;">
+                    <p>Tautan Produk</p>
+                    <a id="viewProductLink" href="#" target="_blank"></a>
                 </div>
             </div>
             
-            <button id="editFab" class="absolute bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" title="Edit Catatan">
+            <button id="editFab" title="Edit Catatan">
                 <i class="fas fa-pencil-alt"></i>
             </button>
         </div>
     </div>
     
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="script.js" type="module"></script>
     
-    <!-- PWA Service Worker Registration -->
+    <script src="script/script.js" type="module"></script>
+    
     <script>
-        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')

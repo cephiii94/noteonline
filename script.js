@@ -72,16 +72,17 @@
         
         document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-        // --- UI & EVENT LISTENERS ---
+// --- UI & EVENT LISTENERS ---
         const menuToggle = document.getElementById('menu-toggle');
         const sidebarOverlay = document.getElementById('sidebar-overlay');
+        
+        // Pertama, kita ambil elemen sidebar-nya dulu agar lebih mudah
+        const sidebar = document.getElementById('sidebar'); 
+
         menuToggle.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.remove('-translate-x-full');
-            sidebarOverlay.classList.remove('hidden');
-        });
-        sidebarOverlay.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            sidebarOverlay.classList.add('hidden');
+            // Sama seperti di kanban.html, kita gunakan .toggle()
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
         });
 
         // --- RICH TEXT EDITOR SETUP ---
