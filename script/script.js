@@ -94,6 +94,26 @@ function toggleSidebar() {
 menuToggle.addEventListener('click', toggleSidebar);
 sidebarOverlay.addEventListener('click', closeSidebar); // Klik overlay *selalu* menutup
 
+// --- Logika Dropdown Kategori ---
+const kategoriHeader = document.getElementById('kategori-header');
+const kategoriToggleBtn = document.getElementById('kategori-toggle-btn');
+const kategoriList = document.getElementById('kategori-list');
+
+// Cek apakah elemennya ada sebelum menambahkan listener
+if (kategoriHeader && kategoriToggleBtn && kategoriList) {
+    
+    kategoriHeader.addEventListener('click', () => {
+        // 'toggle' artinya 'bolak-balik'
+        // Ini akan menambah/menghapus kelas 'collapsed' saat diklik
+        kategoriToggleBtn.classList.toggle('collapsed');
+        kategoriList.classList.toggle('collapsed');
+    });
+
+    // Kita buat kategori terbuka secara default saat halaman dimuat
+    // Hapus baris di bawah ini jika Tuan Cecep ingin kategori tertutup
+    // kategoriToggleBtn.classList.add('collapsed');
+    // kategoriList.classList.add('collapsed');
+}
 
 // --- RICH TEXT EDITOR SETUP ---
 function initializeEditors() {
@@ -248,7 +268,7 @@ function openAddModal() {
 // Add Modal
 document.getElementById('openAddModalBtnMobile').addEventListener('click', openAddModal);
 // Tuan Cecep menghapus tombol #openAddModalBtn, jadi kita hapus listenernya
-// document.getElementById('openAddModalBtn').addEventListener('click', openAddModal); 
+document.getElementById('openAddModalBtn').addEventListener('click', openAddModal); 
 document.getElementById('cancelAdd').addEventListener('click', () => addModal.classList.remove('is-visible'));
 document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
     e.preventDefault();

@@ -31,19 +31,27 @@
         </nav>
         
         <nav class="nav-menu">
-            <p class="nav-menu-title">Kategori</p>
-            <a href="#" data-category="Personal" class="nav-link category-filter">
-                <span class="emoji">&#x1F4CB;</span>
-                <span>Personal</span>
-            </a>
-            <a href="#" data-category="Bisnis" class="nav-link category-filter">
-                <span class="emoji">&#x1F4C8;</span>
-                <span>Bisnis</span>
-            </a>
-            <a href="#" data-category="Proyek" class="nav-link category-filter">
-                <span class="emoji">&#x1F4C1;</span>
-                <span>Proyek</span>
-            </a>
+            <div id="kategori-header" class="nav-menu-header">
+                <p class="nav-menu-title">Kategori</p>
+                <button id="kategori-toggle-btn" class="nav-menu-toggle-btn">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            
+            <div id="kategori-list" class="nav-menu-list">
+                <a href="#" data-category="Personal" class="nav-link category-filter">
+                    <span class="emoji">&#x1F4CB;</span>
+                    <span>Personal</span>
+                </a>
+                <a href="#" data-category="Bisnis" class="nav-link category-filter">
+                    <span class="emoji">&#x1F4C8;</span>
+                    <span>Bisnis</span>
+                </a>
+                <a href="#" data-category="Proyek" class="nav-link category-filter">
+                    <span class="emoji">&#x1F4C1;</span>
+                    <span>Proyek</span>
+                </a>
+            </div>
          </nav>
          
          <nav class="nav-menu">            
@@ -85,6 +93,11 @@
             </div>
             
             <div class="header-right">
+
+                <button id="openAddModalBtn" class="btn btn-primary header-add-btn">
+                    <i class="fas fa-plus"></i>
+                    <span class="text">Tambah Catatan</span>
+                </button>
                 <div id="userInfo" class="user-info">
                     <p class="user-info-name" id="userNameDisplay">Memuat...</p>
                     <p class="user-info-email" id="userEmailDisplay"></p>
@@ -93,15 +106,14 @@
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="text">Keluar</span>
                 </button>
-            </div>
+            </div>        
         </header>
 
         <div class="notes-area">
             <div class="notes-header-bar">
-                <h1 id="notesHeader" class="notes-title">Semua Catatan</h1>
                 <button id="openAddModalBtn" class="btn btn-primary hidden">
                     <i class="fas fa-plus"></i><span>Tambah Catatan</span>
-                </button>
+                </button> 
             </div>
             
             <div id="notesList" class="notes-grid">
@@ -110,7 +122,7 @@
         </div>
     </main>
     
-    <button id="openAddModalBtnMobile" class="fab-add" title="Tambah Catatan Baru">
+    <button id="openAddModalBtnMobile" class="fab-add fab-mobile-only" title="Tambah Catatan Baru">
         <i class="fas fa-plus"></i>
     </button>
 

@@ -82,6 +82,60 @@ input, select, textarea {
     margin-bottom: 0.25rem;
 }
 
+/* --- CSS untuk Dropdown Kategori --- */
+
+/* Ini membuat area judul "Kategori" bisa diklik */
+.nav-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem; /* Jarak ke bawah */
+  cursor: pointer; /* Ubah cursor jadi tangan saat di-hover */
+  padding: 0.25rem 0; /* Beri sedikit ruang klik */
+}
+
+/* Tombol panah */
+.nav-menu-toggle-btn {
+  color: #94a3b8; /* Warna ikon (abu-abu) */
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem; /* Agak bulat */
+  transition: transform 0.2s ease; /* Animasi putar */
+}
+
+.nav-menu-header:hover .nav-menu-toggle-btn {
+  background-color: #f1f5f9; /* Latar hover (abu-abu muda) */
+  color: #64748b;
+}
+
+/* Ini untuk memutar ikon panahnya */
+.nav-menu-toggle-btn.collapsed i {
+  transform: rotate(-90deg);
+}
+
+/* Daftar kategori (yang akan disembunyikan) */
+.nav-menu-list {
+  /* Trik animasi menggunakan max-height */
+  max-height: 500px; /* Ketinggian normal */
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  
+  /* Kita tambahkan ini agar jarak antar item tetap sama */
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; 
+}
+
+/* Saat daftarnya terlipat (collapsed) */
+.nav-menu-list.collapsed {
+  max-height: 0; /* Ketinggian jadi 0 (sembunyi) */
+  transition: max-height 0.3s ease-in;
+  margin-top: -0.5rem; /* Hilangkan sisa jarak */
+}
+
 .nav-link {
     display: flex;
     align-items: center;
@@ -712,4 +766,43 @@ input, select, textarea {
     .form-grid-span-2 {
         grid-column: span 2 / span 2; /* md:col-span-2 */
     }
+}
+
+/* --- CSS untuk Tombol Tambah Catatan (Responsif) --- */
+
+/* 1. Aturan untuk Tombol di Header */
+.header-add-btn {
+  display: none; /* Sembunyi di mobile */
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.header-add-btn .text {
+  display: none; /* Sembunyikan teksnya juga */
+}
+
+/* 2. Aturan untuk Tombol FAB (Float) */
+.fab-mobile-only {
+  display: flex; /* Tampil di mobile (ini defaultnya) */
+}
+
+
+/* 3. Aturan saat layar besar (Desktop) */
+/* Gunakan breakpoint yang sama dengan sidebar Tuan Cecep (768px) */
+
+@media (min-width: 768px) {
+  
+  /* Tampilkan tombol di header saat di desktop */
+  .header-add-btn {
+    display: flex; /* 'flex' agar ikon dan teks sejajar */
+  }
+  
+  /* Tampilkan juga teks tombolnya saat di desktop */
+  .header-add-btn .text {
+    display: inline;
+  }
+
+  /* Sembunyikan tombol FAB saat di desktop */
+  .fab-mobile-only {
+    display: none;
+  }
 }
