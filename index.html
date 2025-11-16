@@ -53,7 +53,6 @@
                 </a>
             </div>
          </nav>
-         
          <nav class="nav-menu">            
              <p class="nav-menu-title">Shortcut</p>
             <a href="/kanban.html" class="nav-link">
@@ -93,11 +92,12 @@
             </div>
             
             <div class="header-right">
-
+                
                 <button id="openAddModalBtn" class="btn btn-primary header-add-btn">
                     <i class="fas fa-plus"></i>
                     <span class="text">Tambah Catatan</span>
                 </button>
+                
                 <div id="userInfo" class="user-info">
                     <p class="user-info-name" id="userNameDisplay">Memuat...</p>
                     <p class="user-info-email" id="userEmailDisplay"></p>
@@ -106,15 +106,13 @@
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="text">Keluar</span>
                 </button>
-            </div>        
-        </header>
+            </div>
+            </header>
 
         <div class="notes-area">
             <div class="notes-header-bar">
-                <button id="openAddModalBtn" class="btn btn-primary hidden">
-                    <i class="fas fa-plus"></i><span>Tambah Catatan</span>
-                </button> 
-            </div>
+                <h1 id="notesHeader" class="notes-title">Semua Catatan</h1>
+                </div>
             
             <div id="notesList" class="notes-grid">
                 <p id="loadingMessage" class="notes-empty-message">Memuat catatan...</p>
@@ -187,14 +185,33 @@
     </div>
 
     <div id="viewModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 896px;"> <div class="modal-header">
+        <div class="modal-content" style="max-width: 896px;"> 
+            <div class="modal-header view-modal-header">
+
+                <button id="viewBackBtn" class="modal-icon-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+
                 <div class="view-title-group">
                     <h2 id="viewNoteTitle"></h2>
                     <p id="viewNoteDate"></p>
                 </div>
-                <button id="closeView" class="modal-close-btn"><i class="fas fa-times"></i></button>
+
+                <button id="closeView" class="modal-close-btn desktop-only">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <button id="viewHeaderEditBtn" class="modal-icon-btn desktop-only-flex" title="Edit Catatan">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+                <button id="viewHeaderDeleteBtn" class="modal-icon-btn desktop-only-flex" title="Hapus Catatan">
+                    <i class="fas fa-trash"></i>
+                </button>
+
+                <button id="viewMenuBtn" class="modal-icon-btn">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
             </div>
-            
             <div class="view-meta-group" style="padding: 0 1.5rem;">
                 <span id="viewNoteCategory"></span>
                 <div id="viewNoteTags"></div>
@@ -208,13 +225,21 @@
                     <a id="viewProductLink" href="#" target="_blank"></a>
                 </div>
             </div>
+
+            <div id="viewNoteDropdownMenu" class="view-dropdown-menu">
+                <button id="viewMenuEdit" class="view-dropdown-item">
+                    <i class="fas fa-pencil-alt"></i> Edit
+                </button>
+                <button id="viewMenuDelete" class="view-dropdown-item danger">
+                    <i class="fas fa-trash"></i> Hapus
+                </button>
+            </div>
             
-            <button id="editFab" title="Edit Catatan">
+            <button id="editFab" title="Edit Catatan" class="desktop-only">
                 <i class="fas fa-pencil-alt"></i>
             </button>
         </div>
     </div>
-    
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     
     <script src="script/script.js" type="module"></script>

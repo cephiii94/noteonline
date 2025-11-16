@@ -806,3 +806,147 @@ input, select, textarea {
     display: none;
   }
 }
+
+/* --- CSS untuk Tampilan Fullscreen View Modal di Mobile --- */
+
+/* Tombol-tombol baru di header modal */
+.modal-icon-btn {
+  color: #94a3b8; /* text-slate-400 */
+  width: 2.5rem; /* w-10 */
+  height: 2.5rem; /* h-10 */
+  border-radius: 9999px; /* rounded-full */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0; /* Mencegah tombol penyet */
+}
+.modal-icon-btn:hover {
+  color: #64748b; /* hover:text-slate-500 */
+  background-color: #f1f5f9; /* hover:bg-slate-100 */
+}
+
+/* Header modal baru kita */
+.view-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Membuat item terpisah */
+}
+.view-modal-header .view-title-group {
+  flex-grow: 1; /* Judul mengambil sisa ruang */
+  text-align: left; /* Judul di tengah */
+  /* Mencegah judul terlalu panjang */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 0.5rem;
+}
+.view-modal-header .view-title-group h2 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* Menu Dropdown '...' */
+.view-dropdown-menu {
+  position: absolute;
+  top: 4.5rem; /* Tepat di bawah header */
+  right: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e9f2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 60; /* Di atas konten modal */
+  display: none; /* Sembunyi by default */
+  padding: 0.5rem 0;
+}
+.view-dropdown-menu.is-visible {
+  display: block;
+}
+.view-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  color: #334155; /* text-slate-700 */
+}
+.view-dropdown-item:hover {
+  background-color: #f8f9fd; /* bg-blue-50 */
+}
+.view-dropdown-item.danger {
+  color: #ef4444; /* text-red-500 */
+}
+
+  /* 1. Sembunyikan tombol 'X' dan FAB Edit di HP */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Kelas baru untuk tombol Edit/Hapus di header */
+.desktop-only-flex {
+    display: none; /* Sembunyi di Mobile (default) */
+}
+
+/* Atur warna tombol Hapus di header (sudah ada) */
+#viewHeaderDeleteBtn {
+    color: #ef4444;
+}
+#viewHeaderDeleteBtn:hover {
+    color: #dc2626;
+    background-color: #fee2e2;
+}
+
+/* --- Media Query untuk Mobile --- */
+/* (Aturan ini hanya berlaku di layar kecil) */
+@media (max-width: 767px) {
+  
+
+
+  /* 2. Ubah modal menjadi fullscreen */
+  #viewModal.is-visible {
+    padding: 0;
+  }
+  #viewModal .modal-content {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 0; /* Hapus sudut bulat */
+  }
+  
+  /* 3. Atur header di HP */
+  .view-modal-header {
+    padding: 0.75rem 0.5rem; /* Perkecil padding header */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Beri bayangan tipis */
+  }
+  .view-modal-header .view-title-group h2 {
+    font-size: 1.125rem; /* Perkecil judul */
+  }
+  .view-modal-header .view-title-group p {
+    font-size: 0.75rem; /* Perkecil tanggal */
+  }
+}
+
+/* --- Media Query untuk Desktop --- */
+/* (Aturan ini hanya berlaku di layar besar) */
+@media (min-width: 768px) {
+
+  /* 1. Tampilkan tombol Edit/Hapus di header */
+  .desktop-only-flex {
+    display: flex;
+  }
+
+  /* 2. Sembunyikan tombol Menu '...' di desktop */
+  #viewMenuBtn {
+    display: none !important;
+  }
+
+  /* 3. Sembunyikan menu dropdown di desktop */
+  .view-dropdown-menu {
+    display: none !important;
+  }
+}

@@ -1,5 +1,5 @@
 // Impor konfigurasi Firebase dari file terpisah
-import { auth, db } from '../firebase-config.js'; // PERHATIAN: Path ini diubah
+import { auth, db } from '../firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc, deleteDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -94,6 +94,7 @@ function toggleSidebar() {
 menuToggle.addEventListener('click', toggleSidebar);
 sidebarOverlay.addEventListener('click', closeSidebar); // Klik overlay *selalu* menutup
 
+
 // --- Logika Dropdown Kategori ---
 const kategoriHeader = document.getElementById('kategori-header');
 const kategoriToggleBtn = document.getElementById('kategori-toggle-btn');
@@ -108,12 +109,8 @@ if (kategoriHeader && kategoriToggleBtn && kategoriList) {
         kategoriToggleBtn.classList.toggle('collapsed');
         kategoriList.classList.toggle('collapsed');
     });
-
-    // Kita buat kategori terbuka secara default saat halaman dimuat
-    // Hapus baris di bawah ini jika Tuan Cecep ingin kategori tertutup
-    // kategoriToggleBtn.classList.add('collapsed');
-    // kategoriList.classList.add('collapsed');
 }
+
 
 // --- RICH TEXT EDITOR SETUP ---
 function initializeEditors() {
@@ -260,6 +257,50 @@ const addModal = document.getElementById('addModal');
 const editModal = document.getElementById('editModal');
 const viewModal = document.getElementById('viewModal');
 
+// Variabel Tombol View Modal (Hybrid)
+const viewBackBtn = document.getElementById('viewBackBtn');
+const viewMenuBtn = document.getElementById('viewMenuBtn');
+const viewNoteDropdownMenu = document.getElementById('viewNoteDropdownMenu');
+// Tombol-tombol di header (Desktop)
+const viewHeaderEditBtn = document.getElementById('viewHeaderEditBtn');
+const viewHeaderDeleteBtn = document.getElementById('viewHeaderDeleteBtn');
+// Tombol-tombol di dropdown (Mobile)
+const viewMenuEdit = document.getElementById('viewMenuEdit');
+const viewMenuDelete = document.getElementById('viewMenuDelete');
+
+// === TAMBAHAN BARU: Menutup Modal dengan Tombol Esc ===
+window.addEventListener('keydown', (e) => {
+    // Cek apakah tombol yang ditekan adalah 'Escape'
+    if (e.key === 'Escape' || e.key === 'Esc') {
+
+        // 1. Cek apakah modal konfirmasi (hapus) sedang terbuka
+        // Modal ini adalah prioritas utama untuk ditutup
+        const confirmModal = document.getElementById('customConfirmModal');
+        if (confirmModal) {
+            // Kita "klik" tombol batal secara programatik
+            // Ini lebih aman daripada .remove()
+            const cancelBtn = confirmModal.querySelector('.btn-secondary');
+            if (cancelBtn) {
+                cancelBtn.click();
+            }
+            return; // Hentikan di sini
+        }
+
+        // 2. Jika tidak, cek modal lain yang terbuka
+        if (addModal.classList.contains('is-visible')) {
+            addModal.classList.remove('is-visible');
+        } else if (editModal.classList.contains('is-visible')) {
+            editModal.classList.remove('is-visible');
+        } else if (viewModal.classList.contains('is-visible')) {
+            viewModal.classList.remove('is-visible');
+            // Pastikan dropdown menunya juga tertutup
+            viewNoteDropdownMenu.classList.remove('is-visible');
+        }
+    }
+});
+// === AKHIR TAMBAHAN ===
+
+
 function openAddModal() {
     // Kita ganti class 'hidden' dengan 'is-visible'
     addModal.classList.add('is-visible'); 
@@ -267,9 +308,10 @@ function openAddModal() {
 
 // Add Modal
 document.getElementById('openAddModalBtnMobile').addEventListener('click', openAddModal);
-// Tuan Cecep menghapus tombol #openAddModalBtn, jadi kita hapus listenernya
+// Listener Tombol Header Diaktifkan
 document.getElementById('openAddModalBtn').addEventListener('click', openAddModal); 
 document.getElementById('cancelAdd').addEventListener('click', () => addModal.classList.remove('is-visible'));
+
 document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const tags = document.getElementById('noteTags').value.split(',').map(tag => tag.trim()).filter(Boolean);
@@ -324,7 +366,7 @@ function showViewModal(note) {
     document.getElementById('viewNoteTitle').textContent = note.title;
     document.getElementById('viewNoteCategory').textContent = note.category;
     contentContainer.innerHTML = note.content;
-    linkifyContainer(contentContainer);
+    linkifyContainer(contentContainer); // Panggil fungsi perbaikan link
     
     const dateToDisplay = note.updatedAt ? note.updatedAt.toDate() : note.createdAt.toDate();
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -337,26 +379,96 @@ function showViewModal(note) {
     if (note.productLink) {
         viewProductLink.href = note.productLink;
         viewProductLink.textContent = note.productLink;
-        productLinkContainer.classList.remove('hidden'); // Pakai class 'hidden' helper
+        productLinkContainer.classList.remove('hidden'); 
     } else {
         productLinkContainer.classList.add('hidden');
     }
 
-    document.getElementById('editFab').dataset.id = note.id;
+    // --- Tambahkan ID ke SEMUA Tombol Edit/Delete ---
+    
+    // 1. Simpan ID di tombol header (Desktop)
+    viewHeaderEditBtn.dataset.id = note.id;
+    viewHeaderDeleteBtn.dataset.id = note.id;
+    
+    // 2. Simpan ID di tombol dropdown (Mobile)
+    viewMenuEdit.dataset.id = note.id;
+    viewMenuDelete.dataset.id = note.id;
+    
+    // 3. Pastikan dropdown tertutup saat modal dibuka
+    viewNoteDropdownMenu.classList.remove('is-visible');
+    // --- Akhir Penambahan ID ---
 
-    viewModal.classList.add('is-visible'); // Ganti class
+    viewModal.classList.add('is-visible'); 
 }
-document.getElementById('closeView').addEventListener('click', () => viewModal.classList.remove('is-visible'));
 
-document.getElementById('editFab').addEventListener('click', (e) => {
-    const noteId = e.currentTarget.dataset.id;
+// Tombol 'X' (jika masih ada, tidak akan terpakai karena 'desktop-only')
+document.getElementById('closeView').addEventListener('click', () => {
+    viewModal.classList.remove('is-visible');
+    viewNoteDropdownMenu.classList.remove('is-visible'); // Pastikan menu tertutup
+});
+
+// --- Listener Baru untuk View Modal (Hybrid) ---
+
+// Listener untuk tombol 'Kembali'
+viewBackBtn.addEventListener('click', () => {
+    viewModal.classList.remove('is-visible');
+    viewNoteDropdownMenu.classList.remove('is-visible'); // Pastikan menu tertutup
+});
+
+// Listener untuk tombol 'Menu ...' (Mobile)
+viewMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Mencegah klik 'menembus' ke modal
+    viewNoteDropdownMenu.classList.toggle('is-visible');
+});
+
+// --- Kita buat fungsi Aksi agar tidak duplikat kode ---
+
+// Fungsi Aksi untuk EDIT
+const editNoteAction = (noteId) => {
     if (noteId) {
         const note = allNotes.find(n => n.id === noteId);
         if (note) {
             viewModal.classList.remove('is-visible');
-            showEditModal(note);
+            viewNoteDropdownMenu.classList.remove('is-visible'); // Tutup menu
+            showEditModal(note); // Buka modal edit
         }
     }
+};
+
+// Fungsi Aksi untuk DELETE
+const deleteNoteAction = (noteId) => {
+    const noteRef = doc(db, notesCollectionRef.path, noteId);
+    viewNoteDropdownMenu.classList.remove('is-visible'); // Tutup menu dulu
+    
+    showConfirmModal('Anda yakin ingin menghapus catatan ini?', async () => {
+        await deleteDoc(noteRef);
+        viewModal.classList.remove('is-visible'); // Tutup modal view
+    });
+};
+
+// --- Terapkan fungsi Aksi ke tombol-tombolnya ---
+
+// Listener untuk 'Edit' Desktop (Header)
+viewHeaderEditBtn.addEventListener('click', (e) => {
+    editNoteAction(e.currentTarget.dataset.id);
+});
+// Listener untuk 'Edit' Mobile (Dropdown)
+viewMenuEdit.addEventListener('click', (e) => {
+    editNoteAction(e.currentTarget.dataset.id);
+});
+
+// Listener untuk 'Hapus' Desktop (Header)
+viewHeaderDeleteBtn.addEventListener('click', (e) => {
+    deleteNoteAction(e.currentTarget.dataset.id);
+});
+// Listener untuk 'Hapus' Mobile (Dropdown)
+viewMenuDelete.addEventListener('click', (e) => {
+    deleteNoteAction(e.currentTarget.dataset.id);
+});
+
+// Listener untuk FAB Edit (Tombol ini sudah disembunyikan oleh CSS)
+document.getElementById('editFab').addEventListener('click', (e) => {
+    editNoteAction(e.currentTarget.dataset.id);
 });
 
 // Logika untuk menutup modal saat klik overlay
@@ -369,7 +481,7 @@ document.getElementById('editFab').addEventListener('click', (e) => {
     });
 });
 
-// --- CUSTOM CONFIRM MODAL (Tidak ada perubahan, ini sudah pakai vanilla JS) ---
+// --- CUSTOM CONFIRM MODAL (Tidak ada perubahan) ---
 function showConfirmModal(message, onConfirm) {
     const existingModal = document.getElementById('customConfirmModal');
     if (existingModal) {
@@ -378,16 +490,13 @@ function showConfirmModal(message, onConfirm) {
 
     const modalOverlay = document.createElement('div');
     modalOverlay.id = 'customConfirmModal';
-    // Kita beri kelas .modal-overlay agar konsisten
     modalOverlay.className = 'modal-overlay is-visible'; 
     modalOverlay.style.zIndex = "100"; // Pastikan di atas modal lain
 
-    // Kita beri kelas .modal-content
     const modalContent = document.createElement('div');
     modalContent.className = 'modal-content';
-    modalContent.style.maxWidth = '400px'; // Buat lebih kecil
+    modalContent.style.maxWidth = '400px'; 
 
-    // Kita beri kelas .modal-body
     const modalBody = document.createElement('div');
     modalBody.className = 'modal-body';
     modalBody.style.paddingBottom = '1.5rem';
@@ -396,17 +505,16 @@ function showConfirmModal(message, onConfirm) {
     messageP.textContent = message;
     modalBody.appendChild(messageP);
 
-    // Kita beri kelas .modal-footer
     const modalFooter = document.createElement('div');
     modalFooter.className = 'modal-footer';
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Batal';
-    cancelBtn.className = 'btn btn-secondary'; // Pakai kelas tombol kita
+    cancelBtn.className = 'btn btn-secondary'; 
 
     const confirmBtn = document.createElement('button');
     confirmBtn.textContent = 'Hapus';
-    confirmBtn.className = 'btn btn-danger'; // Buat kelas .btn-danger di CSS
+    confirmBtn.className = 'btn btn-danger'; 
 
     modalFooter.appendChild(cancelBtn);
     modalFooter.appendChild(confirmBtn);
@@ -429,7 +537,7 @@ function showConfirmModal(message, onConfirm) {
     });
 }
 
-// --- HELPER FUNCTIONS (Tidak ada perubahan) ---
+// --- HELPER FUNCTIONS ---
 function linkifyContainer(container) {
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
     const nodesToProcess = [];
@@ -442,7 +550,11 @@ function linkifyContainer(container) {
 
     nodesToProcess.forEach(node => {
         const text = node.nodeValue;
-        const urlRegex = /\b((https?:\/\/|www\.)[^\s,."<>()]+|[a-zA-Z0-9.-]+\.(com|id|org|net|io|dev|app|co\.id)([^\s,."<>()]*))\b/g;
+        
+        // --- PERBAIKAN LINK DARI TURN 17 ---
+        const urlRegex = /\b((https?:\/\/|www\.)[^\s,"<>()]+|[a-zA-Z0-9.-]+\.(com|id|org|net|io|dev|app|co\.id)([^\s,"<>()]*))\b/gi;
+        // --- AKHIR PERBAIKAN ---
+        
         if (!urlRegex.test(text)) return;
 
         const fragment = document.createDocumentFragment();
@@ -460,7 +572,7 @@ function linkifyContainer(container) {
             a.href = href;
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
-            a.className = 'text-link'; // Kita buat kelas ini di CSS
+            a.className = 'text-link'; 
             a.textContent = match;
             fragment.appendChild(a);
             lastIndex = offset + match.length;
