@@ -354,6 +354,7 @@ input, select, textarea {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    position: relative; /* Untuk tombol pin */
 }
 
 .note-card:hover {
@@ -383,6 +384,8 @@ input, select, textarea {
     color: #1e293b; /* text-slate-800 */
     margin-bottom: 0.5rem; /* mb-2 */
     word-break: break-word;
+    /* Beri ruang untuk tombol pin */
+    padding-right: 2rem;
 }
 .note-card-content {
     color: #475569; /* text-slate-600 */
@@ -949,4 +952,390 @@ input, select, textarea {
   .view-dropdown-menu {
     display: none !important;
   }
+}
+
+/* --- CSS UNTUK DARK MODE --- */
+
+/* 1. Style untuk Tombol Toggle */
+.dark-mode-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  margin-bottom: 1rem;
+  border-radius: 0.5rem; /* rounded-lg */
+  background-color: #f1f5f9; /* bg-slate-100 */
+  cursor: pointer; /* <-- DARI PERBAIKAN SEBELUMNYA */
+}
+.dark-mode-label {
+  font-size: 0.875rem; /* text-sm */
+  color: #334155; /* text-slate-700 */
+  font-weight: 500;
+}
+.theme-toggle-btn {
+  font-size: 1.125rem; /* text-lg */
+  color: #475569; /* text-slate-600 */
+  cursor: pointer;
+  /* Mencegah pointer-events agar klik tembus ke div */
+  pointer-events: none; 
+}
+/* Sembunyikan matahari by default */
+.theme-toggle-btn .fa-sun {
+  display: none;
+}
+
+/* 2. Warna-warna untuk Mode Gelap */
+
+/* Saat body punya class 'dark-mode', semua di bawah ini akan aktif */
+
+/* -- Warna Dasar -- */
+body.dark-mode {
+    background-color: #1e293b; /* bg-slate-800 */
+    color: #e2e8f0; /* text-slate-200 */
+}
+
+/* -- Sidebar -- */
+body.dark-mode .sidebar {
+    background-color: #334155; /* bg-slate-700 */
+    border-right-color: #475569; /* border-slate-600 */
+}
+body.dark-mode .sidebar-logo {
+    color: #e2e8f0; /* text-slate-200 */
+}
+body.dark-mode .nav-menu-title {
+    color: #94a3b8; /* text-slate-400 */
+}
+body.dark-mode .nav-link {
+    color: #e2e8f0; /* text-slate-200 */
+}
+body.dark-mode .nav-link:hover {
+    background-color: #475569; /* bg-slate-600 */
+}
+body.dark-mode .active-link {
+    background-color: #2563eb; /* bg-blue-600 */
+    color: #ffffff;
+}
+body.dark-mode .active-link .icon, 
+body.dark-mode .active-link span {
+    color: #ffffff;
+}
+body.dark-mode .sidebar-footer {
+    color: #94a3b8; /* text-slate-400 */
+}
+body.dark-mode .dark-mode-toggle {
+    background-color: #475569; /* bg-slate-600 */
+}
+body.dark-mode .dark-mode-label {
+    color: #e2e8f0; /* text-slate-200 */
+}
+body.dark-mode .theme-toggle-btn {
+    color: #eab308; /* text-yellow-500 */
+}
+/* Tampilkan matahari di dark mode */
+body.dark-mode .theme-toggle-btn .fa-sun {
+  display: block;
+}
+/* Sembunyikan bulan di dark mode */
+body.dark-mode .theme-toggle-btn .fa-moon {
+  display: none;
+}
+
+
+/* -- Header -- */
+body.dark-mode .header {
+    background-color: #334155; /* bg-slate-700 */
+    border-bottom-color: #475569; /* border-slate-600 */
+}
+body.dark-mode .menu-toggle-btn {
+    color: #e2e8f0; /* text-slate-200 */
+}
+body.dark-mode .search-input {
+    background-color: #475569; /* bg-slate-600 */
+    color: #e2e8f0;
+}
+body.dark-mode .search-input::placeholder {
+    color: #cbd5e1;
+}
+body.dark-mode .user-info-name {
+    color: #e2e8f0;
+}
+body.dark-mode .user-info-email {
+    color: #cbd5e1; /* text-slate-300 */
+}
+body.dark-mode .logout-btn {
+    background-color: #7f1d1d; /* bg-red-900 */
+    color: #fecaca; /* text-red-200 */
+}
+body.dark-mode .logout-btn:hover {
+    background-color: #991b1b; /* bg-red-800 */
+}
+
+/* -- Area Catatan -- */
+body.dark-mode .notes-title {
+    color: #f1f5f9; /* text-slate-100 */
+}
+body.dark-mode .notes-empty-message {
+    color: #94a3b8; /* text-slate-400 */
+}
+
+/* -- Kartu Catatan -- */
+body.dark-mode .note-card {
+    background-color: #334155; /* bg-slate-700 */
+    border-color: #475569; /* border-slate-600 */
+}
+body.dark-mode .note-card:hover {
+    border-color: #64748b; /* border-slate-500 */
+}
+body.dark-mode .note-card-category {
+    color: #93c5fd; /* text-blue-300 */
+}
+body.dark-mode .note-card-date {
+    color: #94a3b8; /* text-slate-400 */
+}
+body.dark-mode .note-card-title {
+    color: #f1f5f9; /* text-slate-100 */
+}
+body.dark-mode .note-card-content {
+    color: #cbd5e1; /* text-slate-300 */
+}
+body.dark-mode .note-card-footer {
+    border-top-color: #475569; /* border-slate-600 */
+}
+body.dark-mode .note-tag {
+    background-color: #3730a3; /* bg-indigo-800 */
+    color: #c7d2fe; /* text-indigo-200 */
+}
+
+/* -- Modal -- */
+body.dark-mode .modal-content {
+    background-color: #334155; /* bg-slate-700 */
+}
+body.dark-mode .modal-header {
+    border-bottom-color: #475569; /* border-slate-600 */
+}
+body.dark-mode .modal-header h2 {
+    color: #60a5fa; /* text-blue-400 */
+}
+body.dark-mode .modal-footer {
+    border-top-color: #475569; /* border-slate-600 */
+}
+body.dark-mode .form-input {
+    background-color: #475569; /* bg-slate-600 */
+    border-color: #64748b; /* border-slate-500 */
+    color: #e2e8f0;
+}
+body.dark-mode .form-input::placeholder {
+    color: #94a3b8;
+}
+body.dark-mode .form-input:focus {
+    border-color: #60a5fa; /* text-blue-400 */
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.4);
+}
+/* Editor Teks */
+body.dark-mode .ql-toolbar {
+    background-color: #475569; /* bg-slate-600 */
+    border-color: #64748b !important;
+}
+body.dark-mode .ql-editor {
+    background-color: #475569; /* bg-slate-600 */
+    border-color: #64748b !important;
+    color: #e2e8f0;
+}
+body.dark-mode .ql-snow .ql-stroke {
+    stroke: #cbd5e1;
+}
+body.dark-mode .ql-snow .ql-picker-label {
+    color: #cbd5e1;
+}
+
+/* -- Modal View -- */
+body.dark-mode .view-title-group h2 {
+    color: #f1f5f9; /* text-slate-100 */
+}
+body.dark-mode .view-title-group p {
+    color: #94a3b8; /* text-slate-400 */
+}
+body.dark-mode .modal-icon-btn {
+    color: #cbd5e1; /* text-slate-300 */
+}
+body.dark-mode .modal-icon-btn:hover {
+    background-color: #475569; /* bg-slate-600 */
+    color: #f1f5f9;
+}
+body.dark-mode .view-meta-group #viewNoteCategory {
+    background-color: #2563eb; /* bg-blue-600 */
+    color: #ffffff;
+}
+body.dark-mode #viewNoteContent {
+    color: #cbd5e1; /* text-slate-300 */
+}
+body.dark-mode .text-link {
+    color: #93c5fd; /* text-blue-300 */
+}
+body.dark-mode #productLinkContainer {
+    border-top-color: #475569; /* border-slate-600 */
+}
+body.dark-mode #productLinkContainer p {
+    color: #94a3b8; /* text-slate-400 */
+}
+body.dark-mode .view-dropdown-menu {
+    background-color: #475569; /* bg-slate-600 */
+    border-color: #64748b; /* border-slate-500 */
+}
+body.dark-mode .view-dropdown-item {
+    color: #e2e8f0; /* text-slate-200 */
+}
+body.dark-mode .view-dropdown-item:hover {
+    background-color: #64748b; /* bg-slate-500 */
+}
+body.dark-mode .view-dropdown-item.danger {
+    color: #fca5a5; /* text-red-300 */
+}
+body.dark-mode #viewHeaderDeleteBtn:hover {
+    color: #fca5a5; /* text-red-300 */
+    background-color: #991b1b; /* bg-red-800 */
+}
+
+
+/* === KODE BARU UNTUK FITUR 2, 3, 4 === */
+
+/* --- Fitur 3: Tombol View Grid/List --- */
+.view-toggle-buttons {
+    display: flex;
+    background-color: #e2e8f0; /* bg-slate-200 */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 0.25rem; /* p-1 */
+}
+.view-toggle-btn {
+    padding: 0.5rem 0.75rem; /* px-3 py-2 */
+    font-size: 0.875rem; /* text-sm */
+    color: #64748b; /* text-slate-500 */
+    border-radius: 0.375rem; /* rounded-md */
+    line-height: 1; /* Perbaiki alignment ikon */
+}
+.view-toggle-btn.active {
+    background-color: #ffffff;
+    color: #2563EB; /* text-blue-600 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+body.dark-mode .view-toggle-buttons {
+    background-color: #475569; /* bg-slate-600 */
+}
+body.dark-mode .view-toggle-btn {
+    color: #cbd5e1; /* text-slate-300 */
+}
+body.dark-mode .view-toggle-btn.active {
+    background-color: #334155; /* bg-slate-700 */
+    color: #ffffff;
+}
+
+/* --- Fitur 2 & 4: Tombol Pin & Arsip di Kartu --- */
+.note-action-btn.pin-btn {
+    color: #64748b; /* text-slate-500 */
+}
+.note-action-btn.pin-btn:hover {
+    color: #2563EB; /* text-blue-600 */
+    background-color: #EFF6FF; /* bg-blue-50 */
+}
+.note-action-btn.pin-btn.active {
+    color: #2563EB; /* text-blue-600 */
+    background-color: #EFF6FF; /* bg-blue-50 */
+}
+.note-action-btn.archive-btn {
+    color: #64748b; /* text-slate-500 */
+}
+.note-action-btn.archive-btn:hover {
+    color: #eab308; /* text-yellow-500 */
+    background-color: #fef9c3; /* bg-yellow-100 */
+}
+
+/* Tombol Batal Arsip */
+.note-action-btn.unarchive-btn {
+    color: #eab308; /* text-yellow-500 */
+}
+.note-action-btn.unarchive-btn:hover {
+    color: #ca8a04; /* text-yellow-600 */
+    background-color: #fef9c3; /* bg-yellow-100 */
+}
+
+/* Style untuk kartu yang di-PIN */
+.note-card.is-pinned {
+    background-color: #fef9c3; /* bg-yellow-100 */
+    border-color: #fde047; /* border-yellow-300 */
+}
+.note-card.is-pinned:hover {
+    border-color: #facc15; /* border-yellow-400 */
+}
+body.dark-mode .note-card.is-pinned {
+    background-color: #422006; /* Campuran warna gelap */
+    border-color: #b45309; /* border-amber-700 */
+}
+body.dark-mode .note-card.is-pinned:hover {
+    border-color: #d97706; /* border-amber-600 */
+}
+
+/* --- Fitur 3: Tampilan Mode Daftar (List) --- */
+.notes-grid.notes-list-mode {
+    /* Ubah grid jadi 1 kolom */
+    grid-template-columns: 1fr;
+    gap: 0.5rem; /* Perkecil jarak */
+}
+.notes-list-mode .note-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem; /* Perkecil padding */
+}
+/* Sembunyikan bagian-bagian ini di mode list */
+.notes-list-mode .note-card-content,
+.notes-list-mode .note-card-tags,
+.notes-list-mode .note-card-footer,
+.notes-list-mode .note-card-date {
+    display: none;
+}
+/* Tampilkan tombol aksi di kanan */
+.notes-list-mode .note-card-footer {
+    display: block;
+    padding-top: 0;
+    margin-top: 0;
+    border-top: none;
+}
+.notes-list-mode .note-card-body {
+    flex-grow: 1;
+}
+.notes-list-mode .note-card-header {
+    margin-bottom: 0;
+}
+.notes-list-mode .note-card-title {
+    margin-bottom: 0;
+    font-size: 1rem; /* Perkecil judul */
+    padding-right: 0.5rem; /* Kurangi padding pin */
+}
+
+/* --- Fitur 4: Tombol Arsip di Modal --- */
+#viewHeaderArchiveBtn, #viewMenuArchive {
+    color: #eab308; /* text-yellow-500 */
+}
+#viewHeaderArchiveBtn:hover, #viewMenuArchive:hover {
+    color: #ca8a04; /* text-yellow-600 */
+    background-color: #fef9c3; /* bg-yellow-100 */
+}
+#viewHeaderUnarchiveBtn, #viewMenuUnarchive {
+    color: #eab308; /* text-yellow-500 */
+}
+#viewHeaderUnarchiveBtn:hover, #viewMenuUnarchive:hover {
+    color: #ca8a04; /* text-yellow-600 */
+    background-color: #fef9c3; /* bg-yellow-100 */
+}
+/* Dark mode untuk tombol arsip modal */
+body.dark-mode #viewHeaderArchiveBtn:hover, 
+body.dark-mode #viewMenuArchive:hover {
+    color: #fde047; /* text-yellow-300 */
+    background-color: #713f12; /* bg-yellow-900 */
+}
+body.dark-mode #viewHeaderUnarchiveBtn:hover, 
+body.dark-mode #viewMenuUnarchive:hover {
+    color: #fde047; /* text-yellow-300 */
+    background-color: #713f12; /* bg-yellow-900 */
 }

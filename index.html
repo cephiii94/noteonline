@@ -28,6 +28,11 @@
                 <i class="fas fa-grip-horizontal icon"></i>
                 <span>Semua Catatan</span>
             </a>
+            
+            <a href="#" class="nav-link archive-filter">
+                <i class="fas fa-archive icon"></i>
+                <span>Arsip</span>
+            </a>
         </nav>
         
         <nav class="nav-menu">
@@ -53,6 +58,7 @@
                 </a>
             </div>
          </nav>
+         
          <nav class="nav-menu">            
              <p class="nav-menu-title">Shortcut</p>
             <a href="/kanban.html" class="nav-link">
@@ -68,8 +74,15 @@
                 <span>Install Aplikasi</span>
             </a>
         </nav>
-        
+                
         <div class="sidebar-footer">
+            <div id="themeToggle" class="dark-mode-toggle">
+                <span class="dark-mode-label">Mode Gelap</span>
+                <button class="theme-toggle-btn">
+                    <i class="fas fa-moon"></i> 
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
             <p>&copy; 2025 Notonlen</p>
         </div>
     </aside>
@@ -112,7 +125,16 @@
         <div class="notes-area">
             <div class="notes-header-bar">
                 <h1 id="notesHeader" class="notes-title">Semua Catatan</h1>
+                
+                <div class="view-toggle-buttons">
+                    <button id="gridViewBtn" class="view-toggle-btn active" title="Tampilan Grid">
+                        <i class="fas fa-grip-horizontal"></i>
+                    </button>
+                    <button id="listViewBtn" class="view-toggle-btn" title="Tampilan Daftar">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
+            </div>
             
             <div id="notesList" class="notes-grid">
                 <p id="loadingMessage" class="notes-empty-message">Memuat catatan...</p>
@@ -126,60 +148,47 @@
 
     <div id="addModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Buat Catatan Baru</h2>
-            </div>
-    
+            <div class="modal-header"><h2>Tambah Catatan</h2></div>
             <div class="modal-body">
                 <form id="addNoteForm">
-                    <input type="text" id="noteTitle" placeholder="Judul Catatan..." class="form-input" required>
-                    <div id="add-editor" class="form-input"></div>
-                    
-                    <div class="form-grid">
-                        <select id="noteCategory" class="form-input">
-                            <option value="Personal">Personal</option>
-                            <option value="Bisnis">Bisnis</option>
-                            <option value="Proyek">Proyek</option>
-                        </select>
-                        <input type="text" id="noteTags" placeholder="Tags (dipisah koma)..." class="form-input">
-                        <input type="url" id="noteLink" placeholder="Tautan Produk (Opsional)..." class="form-input form-grid-span-2">
+                    <input id="noteTitle" class="form-input" placeholder="Judul catatan" required>
+                    <select id="noteCategory" class="form-input">
+                        <option value="Personal">Personal</option>
+                        <option value="Bisnis">Bisnis</option>
+                        <option value="Proyek">Proyek</option>
+                    </select>
+                    <input id="noteTags" class="form-input" placeholder="tag1, tag2 (pisahkan dengan koma)">
+                    <input id="noteLink" class="form-input" placeholder="Tautan produk (opsional)">
+                    <div id="add-editor" style="height:220px; background:#fff;"></div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancelAdd" class="btn btn-secondary">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
-            </div>
-    
-            <div class="modal-footer">
-                <button type="button" id="cancelAdd" class="btn btn-secondary">Batal</button>
-                <button type="submit" form="addNoteForm" class="btn btn-primary">Simpan</button>
             </div>
         </div>
     </div>
     
     <div id="editModal" class="modal-overlay">
-         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Edit Catatan</h2>
-            </div>
-            
+        <div class="modal-content">
+            <div class="modal-header"><h2>Edit Catatan</h2></div>
             <div class="modal-body">
                 <form id="editNoteForm">
-                    <input type="hidden" id="editNoteId">
-                    <input type="text" id="editNoteTitle" placeholder="Judul Catatan" class="form-input" required>
-                    <div id="edit-editor" class="form-input"></div>
-                     <div class="form-grid">
-                        <select id="editNoteCategory" class="form-input">
-                            <option value="Personal">Personal</option>
-                            <option value="Bisnis">Bisnis</option>
-                            <option value="Proyek">Proyek</option>
-                        </select>
-                        <input type="text" id="editNoteTags" placeholder="Tags (dipisah koma)..." class="form-input">
-                        <input type="url" id="editNoteLink" placeholder="Tautan Produk (Opsional)..." class="form-input form-grid-span-2">
+                    <input id="editNoteId" type="hidden">
+                    <input id="editNoteTitle" class="form-input" placeholder="Judul catatan" required>
+                    <select id="editNoteCategory" class="form-input">
+                        <option value="Personal">Personal</option>
+                        <option value="Bisnis">Bisnis</option>
+                        <option value="Proyek">Proyek</option>
+                    </select>
+                    <input id="editNoteTags" class="form-input" placeholder="tag1, tag2 (pisahkan dengan koma)">
+                    <input id="editNoteLink" class="form-input" placeholder="Tautan produk (opsional)">
+                    <div id="edit-editor" style="height:220px; background:#fff;"></div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancelEdit" class="btn btn-secondary">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
-            </div>
-    
-            <div class="modal-footer">
-                <button type="button" id="cancelEdit" class="btn btn-secondary">Batal</button>
-                <button type="submit" form="editNoteForm" class="btn btn-primary">Simpan Perubahan</button>
             </div>
         </div>
     </div>
@@ -204,6 +213,14 @@
                 <button id="viewHeaderEditBtn" class="modal-icon-btn desktop-only-flex" title="Edit Catatan">
                     <i class="fas fa-pencil-alt"></i>
                 </button>
+                
+                <button id="viewHeaderArchiveBtn" class="modal-icon-btn desktop-only-flex" title="Arsipkan">
+                    <i class="fas fa-archive"></i>
+                </button>
+                <button id="viewHeaderUnarchiveBtn" class="modal-icon-btn desktop-only-flex" title="Batal Arsip" style="display: none;">
+                    <i class="fas fa-undo"></i>
+                </button>
+                
                 <button id="viewHeaderDeleteBtn" class="modal-icon-btn desktop-only-flex" title="Hapus Catatan">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -212,6 +229,7 @@
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
             </div>
+            
             <div class="view-meta-group" style="padding: 0 1.5rem;">
                 <span id="viewNoteCategory"></span>
                 <div id="viewNoteTags"></div>
@@ -219,7 +237,6 @@
             
             <div class="modal-body" style="padding-top: 1rem;">
                 <div id="viewNoteContent" class="note-view-content"></div>
-                
                 <div id="productLinkContainer" class="hidden" style="margin-top: 1rem;">
                     <p>Tautan Produk</p>
                     <a id="viewProductLink" href="#" target="_blank"></a>
@@ -229,6 +246,12 @@
             <div id="viewNoteDropdownMenu" class="view-dropdown-menu">
                 <button id="viewMenuEdit" class="view-dropdown-item">
                     <i class="fas fa-pencil-alt"></i> Edit
+                </button>
+                <button id="viewMenuArchive" class="view-dropdown-item">
+                    <i class="fas fa-archive"></i> Arsipkan
+                </button>
+                <button id="viewMenuUnarchive" class="view-dropdown-item" style="display: none;">
+                    <i class="fas fa-undo"></i> Batal Arsip
                 </button>
                 <button id="viewMenuDelete" class="view-dropdown-item danger">
                     <i class="fas fa-trash"></i> Hapus
@@ -240,22 +263,20 @@
             </button>
         </div>
     </div>
+    
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    
     <script src="script/script.js" type="module"></script>
-    
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('Service Worker berhasil didaftarkan: ', registration);
-                    })
-                    .catch(error => {
-                        console.log('Pendaftaran Service Worker gagal: ', error);
-                    });
-            });
-        }
-    </script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker berhasil didaftarkan: ', reg);
+    } catch (err) {
+      console.warn('Gagal mendaftarkan Service Worker:', err);
+    }
+  });
+}
+</script>
 </body>
 </html>
