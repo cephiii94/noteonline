@@ -552,8 +552,8 @@ function linkifyContainer(container) {
         const text = node.nodeValue;
         
         // --- PERBAIKAN LINK DARI TURN 17 ---
-        const urlRegex = /\b((https?:\/\/|www\.)[^\s,"<>()]+|[a-zA-Z0-9.-]+\.(com|id|org|net|io|dev|app|co\.id)([^\s,"<>()]*))\b/gi;
-        // --- AKHIR PERBAIKAN ---
+// KODE BARU (Mendeteksi semua TLD seperti .ai, .me, .xyz, dll.)
+        const urlRegex = /\b((https?:\/\/|www\.)[^\s,"<>()]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}([^\s,"<>()]*))\b/gi;        // --- AKHIR PERBAIKAN ---
         
         if (!urlRegex.test(text)) return;
 
