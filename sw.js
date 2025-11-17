@@ -1,5 +1,5 @@
 // Nama cache diperbarui ke v5 untuk memicu pembaruan
-const CACHE_NAME = 'notonlen-cache-v5'; 
+const CACHE_NAME = 'notonlen-cache-v5.5.2'; 
 
 // Daftar file inti yang akan di-cache (PATH SUDAH DIPERBAIKI)
 const urlsToCache = [

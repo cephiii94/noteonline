@@ -595,6 +595,8 @@ function showViewModal(note) {
     // Tombol Mobile
     const viewMenuArchive = document.getElementById('viewMenuArchive');
     const viewMenuUnarchive = document.getElementById('viewMenuUnarchive');
+    const viewMenuEdit = document.getElementById('viewMenuEdit');
+    const viewMenuDelete = document.getElementById('viewMenuDelete');
 
     const contentContainer = document.getElementById('viewNoteContent');
     const productLinkContainer = document.getElementById('productLinkContainer');
@@ -626,11 +628,16 @@ function showViewModal(note) {
         viewMenuArchive.style.display = 'none';
         viewHeaderUnarchiveBtn.style.display = 'flex'; 
         viewMenuUnarchive.style.display = 'flex'; 
+        viewMenuEdit.style.display = 'flex';
+        viewMenuDelete.style.display = 'flex';
     } else {
         viewHeaderArchiveBtn.style.display = 'flex';
         viewMenuArchive.style.display = 'flex';
         viewHeaderUnarchiveBtn.style.display = 'none';
         viewMenuUnarchive.style.display = 'none';
+        viewMenuEdit.style.display = 'flex';
+        viewMenuDelete.style.display = 'flex';
+
     }
 
     document.getElementById('viewHeaderEditBtn').dataset.id = note.id;
