@@ -287,6 +287,7 @@ input, select, textarea {
 }
 .user-info-name {
     font-weight: 600; /* font-semibold */
+    display: none;
 }
 .user-info-email {
     font-size: 0.75rem; /* text-xs */
@@ -334,8 +335,9 @@ input, select, textarea {
 /* Grid Catatan (dari style.css lama) */
 .notes-grid {
     display: grid;
+    /* DEFAULT (MOBILE): 2 kolom seperti di gambar Tuan Cecep */
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 1rem; /* Jaraknya kita perkecil sedikit di HP */
 }
 
 .notes-empty-message {
@@ -778,6 +780,16 @@ input, select, textarea {
     .notes-grid {
     /* Desktop: 4 kolom sesuai keinginan Tuan Cecep */
     grid-template-columns: repeat(4, 1fr);
+    }
+    .user-info-name {
+        display: block;
+    }
+
+    /* --- TAMBAHKAN BLOK 2 INI --- */
+    /* Atur 5 kolom di desktop sesuai permintaan Tuan Cecep */
+    .notes-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1.5rem; /* Kembalikan jarak normal */
     }
 }
 
