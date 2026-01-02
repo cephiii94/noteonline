@@ -489,6 +489,9 @@ body.dark-mode .ql-snow .ql-stroke { stroke: var(--text-muted); }
 body.dark-mode .ql-snow .ql-picker-label { color: var(--text-muted); }
 .text-link { color: var(--primary); text-decoration: underline; }
 
+/* Default: Sembunyikan Footer Modal (muncul hanya di desktop nanti) */
+.view-modal-footer { display: none; }
+
 
 /* =========================================
    9. MEDIA QUERIES & RESPONSIF
@@ -627,6 +630,50 @@ body.dark-mode .ql-snow .ql-picker-label { color: var(--text-muted); }
     .desktop-only-flex { display: flex; }
     #viewMenuBtn { display: none !important; }
     .view-dropdown-menu { display: none !important; }
+
+    /* 1. Tampilkan Footer Barunya */
+    .view-modal-footer {
+        display: flex !important; /* Paksa muncul */
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        background-color: var(--bg-surface);
+        /* Pastikan footer nempel di bawah */
+        margin-top: auto; 
+    }
+
+    /* Style container tombol biar rapi */
+    .note-action-group {
+        display: flex;
+        gap: 0.75rem; /* Jarak antar ikon */
+    }
+
+    /* Style Ikon di Footer (Mengikuti style note-action-btn yang sudah ada) */
+    .view-modal-footer .note-action-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem; /* Sedikit kotak biar beda dikit dari yang bulat */
+        font-size: 1rem;
+        background-color: var(--bg-hover); /* Background tipis */
+    }
+    
+    /* Hover effects (Reuse variable warna) */
+    .view-modal-footer .edit-btn:hover { color: var(--warning); background-color: var(--warning-bg); }
+    .view-modal-footer .delete-btn:hover { color: var(--danger); background-color: var(--danger-bg); }
+    .view-modal-footer .archive-btn:hover { color: var(--primary); background-color: var(--bg-active); }
+
+    /* 2. BERSIHKAN HEADER (Sembunyikan tombol header di Desktop) */
+    #viewHeaderEditBtn, 
+    #viewHeaderDeleteBtn,
+    #viewHeaderArchiveBtn,
+    #viewHeaderUnarchiveBtn,
+    #editFab { /* Sembunyikan juga tombol melayang (FAB) */
+        display: none !important;
+    }
+    
+    /* Tombol Menu (Titik Tiga) juga sembunyikan di Desktop */
+    #viewMenuBtn { display: none !important; }
 }
 
 /* Mobile (< 767px) */

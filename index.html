@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     
     <meta name="theme-color" content="#2563EB"/>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
     
     <title>NoteOnline - Catatan Online Anda</title>
     
@@ -153,21 +159,31 @@
         <i class="fas fa-plus"></i>
     </button>
 
-    <div id="addModal" class="modal-overlay">
+<div id="addModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header"><h2>Tambah Catatan</h2></div>
+            <div class="modal-header">
+                <h2>Tambah Catatan</h2>
+            </div>
             <div class="modal-body">
-                <form id="addNoteForm">
-                    <input id="noteTitle" class="form-input" placeholder="Judul catatan" required>
+                <form id="addNoteForm" class="form-grid">
+                    <input type="text" id="noteTitle" class="form-input form-grid-span-2" placeholder="Judul Catatan" required>
+                    
                     <select id="noteCategory" class="form-input">
                         <option value="Personal">Personal</option>
-                        <option value="Bisnis">Bisnis</option>
-                        <option value="Proyek">Proyek</option>
+                        <option value="Work">Pekerjaan</option>
+                        <option value="Idea">Ide</option>
+                        <option value="Learning">Belajar</option>
                     </select>
-                    <input id="noteTags" class="form-input" placeholder="tag1, tag2 (pisahkan dengan koma)">
-                    <input id="noteLink" class="form-input" placeholder="Tautan produk (opsional)">
-                    <div id="add-editor" style="height:220px; background:#fff;"></div>
-                    <div class="modal-footer">
+                    
+                    <input type="text" id="noteTags" class="form-input" placeholder="Tags (pisahkan koma)">
+                    
+                    <div class="form-input form-grid-span-2" style="height: 250px; display: flex; flex-direction: column; background: white;">
+                        <div id="addEditorContainer" style="flex: 1;"></div>
+                    </div>
+                    
+                    <input type="url" id="noteLink" class="form-input form-grid-span-2" placeholder="Link Produk (Opsional)">
+                    
+                    <div class="modal-footer form-grid-span-2">
                         <button type="button" id="cancelAdd" class="btn btn-secondary">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
@@ -175,25 +191,35 @@
             </div>
         </div>
     </div>
-    
+
     <div id="editModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header"><h2>Edit Catatan</h2></div>
+            <div class="modal-header">
+                <h2>Edit Catatan</h2>
+            </div>
             <div class="modal-body">
-                <form id="editNoteForm">
-                    <input id="editNoteId" type="hidden">
-                    <input id="editNoteTitle" class="form-input" placeholder="Judul catatan" required>
+                <form id="editNoteForm" class="form-grid">
+                    <input type="hidden" id="editNoteId">
+                    <input type="text" id="editNoteTitle" class="form-input form-grid-span-2" placeholder="Judul Catatan" required>
+                    
                     <select id="editNoteCategory" class="form-input">
                         <option value="Personal">Personal</option>
-                        <option value="Bisnis">Bisnis</option>
-                        <option value="Proyek">Proyek</option>
+                        <option value="Work">Pekerjaan</option>
+                        <option value="Idea">Ide</option>
+                        <option value="Learning">Belajar</option>
                     </select>
-                    <input id="editNoteTags" class="form-input" placeholder="tag1, tag2 (pisahkan dengan koma)">
-                    <input id="editNoteLink" class="form-input" placeholder="Tautan produk (opsional)">
-                    <div id="edit-editor" style="height:220px; background:#fff;"></div>
-                    <div class="modal-footer">
+                    
+                    <input type="text" id="editNoteTags" class="form-input" placeholder="Tags (pisahkan koma)">
+                    
+                    <div class="form-input form-grid-span-2" style="height: 250px; display: flex; flex-direction: column; background: white;">
+                        <div id="editEditorContainer" style="flex: 1;"></div>
+                    </div>
+                    
+                    <input type="url" id="editNoteLink" class="form-input form-grid-span-2" placeholder="Link Produk (Opsional)">
+                    
+                    <div class="modal-footer form-grid-span-2">
                         <button type="button" id="cancelEdit" class="btn btn-secondary">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
                     </div>
                 </form>
             </div>
@@ -263,6 +289,33 @@
                     <p>Tautan Produk</p>
                     <a id="viewProductLink" href="#" target="_blank"></a>
                 </div>
+
+                <div id="productLinkContainer" class="hidden" style="margin-top: 1rem;">
+                    <p>Tautan Produk</p>
+                    <a id="viewProductLink" href="#" target="_blank"></a>
+                </div>
+            </div> <div class="modal-footer view-modal-footer">
+                <div></div> 
+
+                <div class="note-action-group">
+                    <button id="viewFooterUnarchiveBtn" class="note-action-btn unarchive-btn hidden" title="Batal Arsip">
+                        <i class="fas fa-box-open"></i>
+                    </button>
+                    
+                    <button id="viewFooterArchiveBtn" class="note-action-btn archive-btn" title="Arsipkan">
+                        <i class="fas fa-box-archive"></i>
+                    </button>
+
+                    <button id="viewFooterDeleteBtn" class="note-action-btn delete-btn" title="Hapus">
+                        <i class="fas fa-trash"></i>
+                    </button>
+
+                    <button id="viewFooterEditBtn" class="note-action-btn edit-btn" title="Edit Catatan">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </div>
+            </div>
+            </div> </div>
             </div>
 
             <button id="editFab" title="Edit Catatan" class="desktop-only">
@@ -272,18 +325,20 @@
     </div>
     
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="script/script.js" type="module"></script>
+
+    <script src="script/main.js" type="module"></script>
+    
     <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker berhasil didaftarkan: ', reg);
-    } catch (err) {
-      console.warn('Gagal mendaftarkan Service Worker:', err);
+    if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        console.log('Service Worker berhasil didaftarkan: ', reg);
+        } catch (err) {
+        console.warn('Gagal mendaftarkan Service Worker:', err);
+        }
+    });
     }
-  });
-}
 </script>
 </body>
 </html>
