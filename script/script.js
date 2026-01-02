@@ -20,21 +20,28 @@ let addEditor, editEditor; // <-- INI PERBAIKAN UNTUK ERROR 'addEditor'
 
 // --- PERBAIKAN: Jalankan kode DOM setelah HTML siap ---
 // Kita akan panggil fungsi ini di dalam onAuthStateChanged
+// --- PERBAIKAN: Jalankan kode DOM setelah HTML siap ---
 function initializeDOMListeners() {
 
-    // --- LOGIKA DARK MODE ---
-    const themeToggleBtn = document.getElementById('themeToggle');
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            if (document.body.classList.contains('dark-mode')) {
-                setTheme('light'); // Matikan
-            } else {
-                setTheme('dark'); // Aktifkan
-            }
-        });
+    // 1. Definisikan Helper Function dulu di sini (supaya bisa dipakai di bawahnya)
+    function safeAddListener(id, event, handler) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener(event, handler);
+        }
     }
 
-    // Terapkan tema yang tersimpan saat halaman dimuat
+    // --- LOGIKA DARK MODE ---
+    // Gunakan safeAddListener biar lebih aman
+    safeAddListener('themeToggle', 'click', () => {
+        if (document.body.classList.contains('dark-mode')) {
+            setTheme('light');
+        } else {
+            setTheme('dark');
+        }
+    });
+
+    // Terapkan tema yang tersimpan
     const currentTheme = localStorage.getItem('theme');
     if (currentTheme === 'dark') {
         setTheme('dark');
@@ -44,8 +51,8 @@ function initializeDOMListeners() {
 
     // --- PWA INSTALL PROMPT LOGIC ---
     const installAppContainer = document.getElementById('installAppContainer');
-    const installAppSidebarBtn = document.getElementById('installAppSidebarBtn');
-    let deferredPrompt; // Pindahkan ke sini
+    // const installAppSidebarBtn = document.getElementById('installAppSidebarBtn'); // Tidak perlu const ini lagi kalau pakai safeAddListener
+    let deferredPrompt; 
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -55,20 +62,19 @@ function initializeDOMListeners() {
         }
     });
 
-    if (installAppSidebarBtn) {
-        installAppSidebarBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (installAppContainer) {
-                installAppContainer.classList.add('hidden');
-            }
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
-            }
-        });
-    }
+    // Listener Install App
+    safeAddListener('installAppSidebarBtn', 'click', async (e) => {
+        e.preventDefault();
+        if (installAppContainer) {
+            installAppContainer.classList.add('hidden');
+        }
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            deferredPrompt = null;
+        }
+    });
 
     window.addEventListener('appinstalled', () => {
         if (installAppContainer) {
@@ -79,12 +85,18 @@ function initializeDOMListeners() {
     });
 
     // --- UI & EVENT LISTENERS ---
-    const menuToggle = document.getElementById('menu-toggle');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const sidebar = document.getElementById('sidebar');
+    
+    // === [FIX] DUAL BUTTON LISTENER ===
+    // 1. Tombol Mobile (di Header)
+    safeAddListener('mobile-menu-toggle', 'click', toggleSidebar);
+    
+    // 2. Tombol Desktop (di Sidebar)
+    safeAddListener('desktop-menu-toggle', 'click', toggleSidebar);
 
-    menuToggle.addEventListener('click', toggleSidebar);
-    sidebarOverlay.addEventListener('click', closeSidebar); 
+    // Sidebar Overlay
+    safeAddListener('sidebar-overlay', 'click', closeSidebar);
+
+    // === [HAPUS KODE LAMA 'menuToggle' DI SINI AGAR TIDAK ERROR] ===
 
     // --- Logika Dropdown Kategori ---
     const kategoriHeader = document.getElementById('kategori-header');
@@ -99,18 +111,13 @@ function initializeDOMListeners() {
     }
 
     // --- Fitur 3: Tampilan Grid/List ---
-    const gridViewBtn = document.getElementById('gridViewBtn');
-    const listViewBtn = document.getElementById('listViewBtn');
-
-    if (gridViewBtn && listViewBtn) {
-        initializeViewMode(); // Terapkan mode grid/list
-        gridViewBtn.addEventListener('click', () => setViewMode('grid'));
-        listViewBtn.addEventListener('click', () => setViewMode('list'));
-    }
+    initializeViewMode(); // Terapkan mode awal
+    safeAddListener('gridViewBtn', 'click', () => setViewMode('grid'));
+    safeAddListener('listViewBtn', 'click', () => setViewMode('list'));
 
     // --- SEARCH & FILTER LOGIC ---
-    document.getElementById('searchInput').addEventListener('input', filterAndRenderNotes);
-    document.getElementById('mobileSearchInput').addEventListener('input', filterAndRenderNotes);
+    safeAddListener('searchInput', 'input', filterAndRenderNotes);
+    safeAddListener('mobileSearchInput', 'input', filterAndRenderNotes);
 
     // Listener untuk Kategori
     document.querySelectorAll('.category-filter').forEach(filter => {
@@ -120,7 +127,8 @@ function initializeDOMListeners() {
             currentCategory = e.currentTarget.dataset.category;
             
             if (currentCategory !== "All") {
-                document.getElementById('notesHeader').textContent = `Kategori: ${currentCategory}`;
+                const headerEl = document.getElementById('notesHeader');
+                if(headerEl) headerEl.textContent = `Kategori: ${currentCategory}`;
             }
             
             document.querySelectorAll('.nav-link').forEach(f => f.classList.remove('active-link'));
@@ -134,78 +142,70 @@ function initializeDOMListeners() {
         });
     });
 
-    // Listener untuk Arsip (BARU)
-    document.querySelector('.archive-filter').addEventListener('click', (e) => {
-        e.preventDefault();
-        currentFilter = "archived"; 
-        currentCategory = "All"; 
-        
-        document.querySelectorAll('.nav-link').forEach(f => f.classList.remove('active-link'));
-        e.currentTarget.classList.add('active-link');
-        
-        loadNotes(); 
-        
-        if (window.innerWidth < 768) {
-            closeSidebar();
-        }
-    });
+    // Listener untuk Arsip
+    const archiveFilter = document.querySelector('.archive-filter');
+    if (archiveFilter) {
+        archiveFilter.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentFilter = "archived"; 
+            currentCategory = "All"; 
+            
+            document.querySelectorAll('.nav-link').forEach(f => f.classList.remove('active-link'));
+            e.currentTarget.classList.add('active-link');
+            
+            loadNotes(); 
+            
+            if (window.innerWidth < 768) {
+                closeSidebar();
+            }
+        });
+    }
 
-    // --- CRUD ACTIONS (DIPERBARUI) ---
+    // --- CRUD ACTIONS ---
     const notesListContainer = document.getElementById('notesList');
-    notesListContainer.addEventListener('click', async (e) => {
-        const button = e.target.closest('.note-action-btn'); 
-        const card = e.target.closest('.note-card');
+    if (notesListContainer) {
+        notesListContainer.addEventListener('click', async (e) => {
+            const button = e.target.closest('.note-action-btn'); 
+            const card = e.target.closest('.note-card');
 
-        if (button) { // Tombol Aksi diklik
-            e.stopPropagation(); 
-            const noteId = button.dataset.id;
-            const noteRef = doc(db, notesCollectionRef.path, noteId);
-            const note = allNotes.find(n => n.id === noteId);
+            if (button) { // Tombol Aksi diklik
+                e.stopPropagation(); 
+                const noteId = button.dataset.id;
+                const noteRef = doc(db, notesCollectionRef.path, noteId);
+                const note = allNotes.find(n => n.id === noteId);
 
-            if (button.classList.contains('pin-btn')) {
-                await updateDoc(noteRef, { isPinned: !note.isPinned });
+                if (button.classList.contains('pin-btn')) {
+                    await updateDoc(noteRef, { isPinned: !note.isPinned });
+                }
+                else if (button.classList.contains('archive-btn')) {
+                    await updateDoc(noteRef, { isArchived: true, isPinned: false }); 
+                }
+                else if (button.classList.contains('unarchive-btn')) {
+                    await updateDoc(noteRef, { isArchived: false });
+                }
+                else if (button.classList.contains('delete-btn')) {
+                    showConfirmModal('Anda yakin ingin menghapus catatan ini?', async () => {
+                        await deleteDoc(noteRef);
+                    });
+                }
+                else if (button.classList.contains('edit-btn')) {
+                    if (note) showEditModal(note);
+                }
+            } else if (card) { // Kartu catatan diklik
+                const noteId = card.dataset.id;
+                const note = allNotes.find(n => n.id === noteId);
+                if (note) showViewModal(note);
             }
-            else if (button.classList.contains('archive-btn')) {
-                await updateDoc(noteRef, { isArchived: true, isPinned: false }); 
-            }
-            else if (button.classList.contains('unarchive-btn')) {
-                await updateDoc(noteRef, { isArchived: false });
-            }
-            else if (button.classList.contains('delete-btn')) {
-                showConfirmModal('Anda yakin ingin menghapus catatan ini?', async () => {
-                    await deleteDoc(noteRef);
-                });
-            }
-            else if (button.classList.contains('edit-btn')) {
-                if (note) showEditModal(note);
-            }
-        } else if (card) { // Kartu catatan diklik
-            const noteId = card.dataset.id;
-            const note = allNotes.find(n => n.id === noteId);
-            if (note) showViewModal(note);
-        }
-    });
+        });
+    }
 
-    // --- MODAL CONTROLS ---
+    // --- MODAL CONTROLS (Gunakan safeAddListener untuk keamanan) ---
     const addModal = document.getElementById('addModal');
     const editModal = document.getElementById('editModal');
     const viewModal = document.getElementById('viewModal');
-
-    // Variabel Tombol View Modal (Hybrid)
-    const viewBackBtn = document.getElementById('viewBackBtn');
-    const viewMenuBtn = document.getElementById('viewMenuBtn');
+    
+    // View Modal Variables
     const viewNoteDropdownMenu = document.getElementById('viewNoteDropdownMenu');
-    // Tombol Desktop
-    const viewHeaderEditBtn = document.getElementById('viewHeaderEditBtn');
-    const viewHeaderDeleteBtn = document.getElementById('viewHeaderDeleteBtn');
-    const viewHeaderArchiveBtn = document.getElementById('viewHeaderArchiveBtn');
-    const viewHeaderUnarchiveBtn = document.getElementById('viewHeaderUnarchiveBtn');
-    // Tombol Mobile
-    const viewMenuEdit = document.getElementById('viewMenuEdit');
-    const viewMenuDelete = document.getElementById('viewMenuDelete');
-    const viewMenuArchive = document.getElementById('viewMenuArchive');
-    const viewMenuUnarchive = document.getElementById('viewMenuUnarchive');
-
 
     // --- Logika Tombol ESC ---
     window.addEventListener('keydown', (e) => {
@@ -213,28 +213,26 @@ function initializeDOMListeners() {
             const confirmModal = document.getElementById('customConfirmModal');
             if (confirmModal) {
                 const cancelBtn = confirmModal.querySelector('.btn-secondary');
-                if (cancelBtn) {
-                    cancelBtn.click();
-                }
+                if (cancelBtn) cancelBtn.click();
                 return; 
             }
-            if (addModal.classList.contains('is-visible')) {
+            if (addModal && addModal.classList.contains('is-visible')) {
                 addModal.classList.remove('is-visible');
-            } else if (editModal.classList.contains('is-visible')) {
+            } else if (editModal && editModal.classList.contains('is-visible')) {
                 editModal.classList.remove('is-visible');
-            } else if (viewModal.classList.contains('is-visible')) {
+            } else if (viewModal && viewModal.classList.contains('is-visible')) {
                 viewModal.classList.remove('is-visible');
-                viewNoteDropdownMenu.classList.remove('is-visible');
+                if(viewNoteDropdownMenu) viewNoteDropdownMenu.classList.remove('is-visible');
             }
         }
     });
 
-    // Add Modal
-    document.getElementById('openAddModalBtnMobile').addEventListener('click', openAddModal);
-    document.getElementById('openAddModalBtn').addEventListener('click', openAddModal); 
-    document.getElementById('cancelAdd').addEventListener('click', () => addModal.classList.remove('is-visible'));
+    // Add Modal Listeners
+    safeAddListener('openAddModalBtnMobile', 'click', openAddModal);
+    safeAddListener('openAddModalBtn', 'click', openAddModal); 
+    safeAddListener('cancelAdd', 'click', () => addModal.classList.remove('is-visible'));
 
-    document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
+    safeAddListener('addNoteForm', 'submit', async (e) => {
         e.preventDefault();
         const tags = document.getElementById('noteTags').value.split(',').map(tag => tag.trim()).filter(Boolean);
         await addDoc(notesCollectionRef, {
@@ -253,9 +251,10 @@ function initializeDOMListeners() {
         addEditor.setText('');
     });
 
-    // Edit Modal
-    document.getElementById('cancelEdit').addEventListener('click', () => editModal.classList.remove('is-visible'));
-    document.getElementById('editNoteForm').addEventListener('submit', async (e) => {
+    // Edit Modal Listeners
+    safeAddListener('cancelEdit', 'click', () => editModal.classList.remove('is-visible'));
+    
+    safeAddListener('editNoteForm', 'submit', async (e) => {
         e.preventDefault();
         const noteId = document.getElementById('editNoteId').value;
         const noteRef = doc(db, notesCollectionRef.path, noteId);
@@ -272,47 +271,67 @@ function initializeDOMListeners() {
         editModal.classList.remove('is-visible');
     });
 
-    // Tombol 'X' View Modal
-    document.getElementById('closeView').addEventListener('click', () => {
+    // View Modal Listeners
+    safeAddListener('closeView', 'click', () => {
         viewModal.classList.remove('is-visible');
-        viewNoteDropdownMenu.classList.remove('is-visible'); 
+        if(viewNoteDropdownMenu) viewNoteDropdownMenu.classList.remove('is-visible'); 
     });
 
-    // --- Listener Baru untuk View Modal (Hybrid) ---
-    viewBackBtn.addEventListener('click', () => {
+    safeAddListener('viewBackBtn', 'click', () => {
         viewModal.classList.remove('is-visible');
-        viewNoteDropdownMenu.classList.remove('is-visible'); 
+        if(viewNoteDropdownMenu) viewNoteDropdownMenu.classList.remove('is-visible'); 
     });
 
-    viewMenuBtn.addEventListener('click', (e) => {
+    safeAddListener('viewMenuBtn', 'click', (e) => {
         e.stopPropagation(); 
-        viewNoteDropdownMenu.classList.toggle('is-visible');
+        if(viewNoteDropdownMenu) viewNoteDropdownMenu.classList.toggle('is-visible');
     });
 
     // --- Terapkan fungsi Aksi ke tombol-tombolnya ---
-    viewHeaderEditBtn.addEventListener('click', (e) => editNoteAction(e.currentTarget.dataset.id));
-    viewMenuEdit.addEventListener('click', (e) => editNoteAction(e.currentTarget.dataset.id));
+    // Helper untuk assign action
+    function assignAction(id, actionFn) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', (e) => actionFn(e.currentTarget.dataset.id));
+    }
 
-    viewHeaderDeleteBtn.addEventListener('click', (e) => deleteNoteAction(e.currentTarget.dataset.id));
-    viewMenuDelete.addEventListener('click', (e) => deleteNoteAction(e.currentTarget.dataset.id));
-
-    viewHeaderArchiveBtn.addEventListener('click', (e) => archiveNoteAction(e.currentTarget.dataset.id));
-    viewMenuArchive.addEventListener('click', (e) => archiveNoteAction(e.currentTarget.dataset.id));
-
-    viewHeaderUnarchiveBtn.addEventListener('click', (e) => unarchiveNoteAction(e.currentTarget.dataset.id));
-    viewMenuUnarchive.addEventListener('click', (e) => unarchiveNoteAction(e.currentTarget.dataset.id));
-
-    document.getElementById('editFab').addEventListener('click', (e) => {
+    assignAction('viewHeaderEditBtn', editNoteAction);
+    assignAction('viewMenuEdit', editNoteAction);
+    assignAction('viewHeaderDeleteBtn', deleteNoteAction);
+    assignAction('viewMenuDelete', deleteNoteAction);
+    assignAction('viewHeaderArchiveBtn', archiveNoteAction);
+    assignAction('viewMenuArchive', archiveNoteAction);
+    assignAction('viewHeaderUnarchiveBtn', unarchiveNoteAction);
+    assignAction('viewMenuUnarchive', unarchiveNoteAction);
+    
+    safeAddListener('editFab', 'click', (e) => {
         editNoteAction(e.currentTarget.dataset.id);
     });
 
     // Logika untuk menutup modal saat klik overlay
     [addModal, editModal, viewModal].forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) { 
-                modal.classList.remove('is-visible');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) { 
+                    modal.classList.remove('is-visible');
+                }
+            });
+        }
+    });
+    // ... kode initializeDOMListeners yang lain ...
+
+    // --- LOGIKA BARU: Tutup Dropdown Menu saat klik di luar area ---
+    window.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('viewNoteDropdownMenu');
+        const toggleBtn = document.getElementById('viewMenuBtn');
+
+        // Cek: Jika dropdown ada DAN sedang terbuka
+        if (dropdown && dropdown.classList.contains('is-visible')) {
+            
+            // Logika: Jika yang diklik BUKAN dropdown itu sendiri DAN BUKAN tombol toggle-nya
+            if (!dropdown.contains(e.target) && !e.target.closest('#viewMenuBtn')) {
+                dropdown.classList.remove('is-visible');
             }
-        });
+        }
     });
 
 } // --- AKHIR DARI initializeDOMListeners ---

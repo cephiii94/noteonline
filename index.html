@@ -20,7 +20,13 @@
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <aside id="sidebar" class="sidebar">
-        <div class="sidebar-logo">Notonlen</div>
+        <div class="sidebar-top-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div class="sidebar-logo" style="margin-bottom: 0;">Notonlen</div>
+            
+            <button id="desktop-menu-toggle" class="menu-toggle-btn desktop-visible" style="color: var(--text-muted); font-size: 1.25rem;">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>      
         
         <nav class="nav-menu">
             <p class="nav-menu-title">Menu</p>
@@ -34,7 +40,7 @@
                 <span>Arsip</span>
             </a>
         </nav>
-        
+            
         <nav class="nav-menu">
             <div id="kategori-header" class="nav-menu-header">
                 <p class="nav-menu-title">Kategori</p>
@@ -90,9 +96,10 @@
     <main class="main-content">
         <header class="header">
             <div class="header-left">
-                <button id="menu-toggle" class="menu-toggle-btn">
+                <button id="mobile-menu-toggle" class="menu-toggle-btn mobile-visible">
                     <i class="fas fa-bars"></i>
                 </button>
+
                 <div class="search-bar">
                     <i class="fas fa-search icon"></i>
                     <input type="search" id="searchInput" placeholder="Search..." class="search-input">
