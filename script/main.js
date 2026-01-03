@@ -33,7 +33,7 @@ onAuthStateChanged(auth, (user) => {
 function refreshNotesData() {
     // Panggil Service Firebase (yang sekarang mengambil SEMUA data)
     FirebaseService.subscribeToNotes(userId, currentFilter, currentCategory, (notes) => {
-        console.log("🔥 Data masuk:", notes.length); // Cek console kalau ragu
+        // console.log("🔥 Data masuk:", notes.length); // Uncomment untuk debug
         allNotes = notes; // Simpan data mentah
         filterAndRender(); // Lanjut ke penyaringan
     }, (error) => {
@@ -73,7 +73,7 @@ function filterAndRender() {
         return true;
     });
 
-    // 3. SORTING (Urutkan Data)
+    // 3. SORTING (Urutkan Data - BAGIAN YANG DIPERBAIKI BRI)
     filteredNotes.sort((a, b) => {
         // A. Prioritas Pin (Hanya di menu utama)
         if (currentFilter !== 'archived') {
@@ -83,10 +83,17 @@ function filterAndRender() {
         }
         
         // B. Prioritas Waktu (Terbaru di atas)
-        // Pakai Date(0) kalau tanggalnya rusak/lama banget
-        const timeA = a.updatedAt && a.updatedAt.toDate ? a.updatedAt.toDate() : new Date(0);
-        const timeB = b.updatedAt && b.updatedAt.toDate ? b.updatedAt.toDate() : new Date(0);
-        return timeB - timeA;
+        // --- HELP FUNCTION PINTAR: Handle Date vs Timestamp ---
+        const getTime = (dateObj) => {
+            if (!dateObj) return 0;
+            // Kalau punya toDate() pakai itu, kalau tidak anggap Date biasa
+            return typeof dateObj.toDate === 'function' ? dateObj.toDate().getTime() : new Date(dateObj).getTime();
+        };
+
+        const timeA = getTime(a.updatedAt);
+        const timeB = getTime(b.updatedAt);
+        
+        return timeB - timeA; // Urutkan dari yang paling besar (terbaru)
     });
 
     // 4. Tampilkan ke Layar
@@ -262,38 +269,113 @@ function initializeEventListeners() {
         }
     });
 
-    // --- Submit Forms ---
-    Utils.safeAddListener('addNoteForm', 'submit', async (e) => {
+// script/main.js - Bagian paling bawah (Submit Forms)
+
+    // 1. Tambah Catatan (FIX: Data diambil DULUAN sebelum reset)
+    Utils.safeAddListener('addNoteForm', 'submit', (e) => {
         e.preventDefault();
-        const editorContent = UI.getEditorContent('add');
-        const tags = document.getElementById('noteTags').value.split(',').map(t=>t.trim()).filter(Boolean);
         
-        await FirebaseService.addNoteToFirestore(userId, {
-            title: document.getElementById('noteTitle').value,
-            category: document.getElementById('noteCategory').value,
-            productLink: document.getElementById('noteLink').value,
-            content: editorContent.html,
-            plainText: editorContent.text,
-            tags: tags
-        });
-        UI.closeModal('addModal');
-        e.target.reset();
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Simpan';
+
+        // A. KUNCI TOMBOL
+        if(submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Proses...';
+        }
+
+        try {
+            // B. AMBIL DATA DULUAN (PENTING: Masukkan ke variabel agar tidak hilang saat reset)
+            const titleVal = document.getElementById('noteTitle').value; // Ambil Judul
+            const categoryVal = document.getElementById('noteCategory').value; // Ambil Kategori
+            const linkVal = document.getElementById('noteLink').value; // Ambil Link
+            const editorContent = UI.getEditorContent('add');
+            const tags = document.getElementById('noteTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+            
+            // C. TUTUP MODAL & RESET FORM
+            UI.closeModal('addModal'); 
+            e.target.reset(); 
+            if (typeof UI.resetAddEditor === 'function') UI.resetAddEditor();
+
+            // D. KIRIM DATA DARI VARIABEL (Bukan document.getElementById lagi)
+            FirebaseService.addNoteToFirestore(userId, {
+                title: titleVal,       // Pakai variabel
+                category: categoryVal, // Pakai variabel
+                productLink: linkVal,  // Pakai variabel
+                content: editorContent.html,
+                plainText: editorContent.text,
+                tags: tags
+            })
+            .then(() => console.log("✅ Sukses tersimpan"))
+            .catch(err => {
+                console.error("❌ Gagal simpan:", err);
+                alert("Gagal menyimpan: " + err.message);
+            })
+            .finally(() => {
+                // E. KEMBALIKAN TOMBOL
+                if(submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+
+        } catch (error) {
+            console.error("Error Sistem:", error);
+            if(submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        }
     });
 
-    Utils.safeAddListener('editNoteForm', 'submit', async (e) => {
+    // 2. Edit Catatan (FIX: Data diambil DULUAN)
+    Utils.safeAddListener('editNoteForm', 'submit', (e) => {
         e.preventDefault();
-        const noteId = document.getElementById('editNoteId').value;
-        const editorContent = UI.getEditorContent('edit');
-        const tags = document.getElementById('editNoteTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+        
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Update';
 
-        await FirebaseService.updateNoteInFirestore(userId, noteId, {
-            title: document.getElementById('editNoteTitle').value,
-            category: document.getElementById('editNoteCategory').value,
-            productLink: document.getElementById('editNoteLink').value,
-            content: editorContent.html,
-            plainText: editorContent.text,
-            tags: tags
-        });
-        UI.closeModal('editModal');
+        if(submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Proses...';
+        }
+
+        try {
+            // Ambil Data ke Variabel
+            const noteId = document.getElementById('editNoteId').value;
+            const titleVal = document.getElementById('editNoteTitle').value;
+            const categoryVal = document.getElementById('editNoteCategory').value;
+            const linkVal = document.getElementById('editNoteLink').value;
+            const editorContent = UI.getEditorContent('edit');
+            const tags = document.getElementById('editNoteTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+
+            UI.closeModal('editModal');
+
+            FirebaseService.updateNoteInFirestore(userId, noteId, {
+                title: titleVal,
+                category: categoryVal,
+                productLink: linkVal,
+                content: editorContent.html,
+                plainText: editorContent.text,
+                tags: tags
+            })
+            .then(() => console.log("✅ Update sukses"))
+            .catch(err => {
+                console.error("❌ Gagal update:", err);
+                alert("Gagal update: " + err.message);
+            })
+            .finally(() => {
+                if(submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+            });
+        } catch (error) {
+            console.error("Error Sistem:", error);
+            if(submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        }
     });
 }

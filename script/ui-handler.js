@@ -1,4 +1,4 @@
-// script/ui-handler.js (tampilan modal)
+// script/ui-handler.js
 import { formatDate, escapeHTML } from './utils.js';
 
 let addEditor, editEditor; // Instance Quill
@@ -33,13 +33,21 @@ export function getEditorContent(type) {
 
 export function resetAddEditor() {
     if(addEditor) addEditor.setText('');
+    
+    // --- TAMBAHAN BRI: Reset Tombol Simpan ---
+    // Pastikan tombol aktif kembali saat mau nulis baru
+    const btn = document.querySelector('#addNoteForm button[type="submit"]');
+    if(btn) {
+        btn.disabled = false;
+        btn.innerHTML = 'Simpan'; // Kembalikan teks asli
+    }
 }
 
 export function setEditEditorContent(html) {
     if(editEditor) editEditor.root.innerHTML = html;
 }
 
-// --- Render Notes ---
+// --- Render Notes (BAGIAN YANG DIPERBAIKI BRI) ---
 export function renderNotesList(notes, currentFilter, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -56,11 +64,23 @@ export function renderNotesList(notes, currentFilter, containerId) {
     }
 
     notes.forEach(note => {
-        const dateStr = note.updatedAt ? formatDate(note.updatedAt.toDate()) : '';
+        // --- PERBAIKAN TANGGAL OFFLINE VS ONLINE ---
+        let safeDate;
+        if (note.updatedAt) {
+            // Cek: Apakah ini format Server (punya .toDate) atau Lokal?
+            if (typeof note.updatedAt.toDate === 'function') {
+                safeDate = note.updatedAt.toDate(); // Dari Server
+            } else {
+                safeDate = new Date(note.updatedAt); // Dari Lokal (Offline)
+            }
+        }
+        const dateStr = safeDate ? formatDate(safeDate) : '';
+        // ---------------------------------------------
+
         const pinnedClass = note.isPinned ? 'is-pinned' : '';
         const pinIconClass = note.isPinned ? 'active' : '';
 
-        // Tentukan tombol aksi (Sama seperti logika sebelumnya)
+        // Tentukan tombol aksi
         let actionButtonsHTML = '';
         if (currentFilter === 'archived') {
             actionButtonsHTML = `
@@ -178,6 +198,9 @@ export function showViewModal(note) {
     openModal('viewModal');
 }
 
+// script/ui-handler.js (Bagian Bawah)
+
+// 1. Masukkan kode Reset Tombol ke sini (YANG BENAR)
 export function fillEditForm(note) {
     document.getElementById('editNoteId').value = note.id;
     document.getElementById('editNoteTitle').value = note.title;
@@ -185,8 +208,17 @@ export function fillEditForm(note) {
     document.getElementById('editNoteTags').value = note.tags ? note.tags.join(', ') : '';
     document.getElementById('editNoteLink').value = note.productLink || '';
     setEditEditorContent(note.content);
+
+    // --- TAMBAHAN BRI: Reset Tombol Update (PINDAHKAN KE SINI) ---
+    // Pastikan tombol aktif kembali saat mau edit
+    const btn = document.querySelector('#editNoteForm button[type="submit"]');
+    if(btn) {
+        btn.disabled = false;
+        btn.innerHTML = 'Update'; // Kembalikan teks asli
+    }
 }
 
+// 2. Bersihkan fungsi setViewMode (Hapus kode reset tombol dari sini)
 export function setViewMode(mode) {
     localStorage.setItem('viewMode', mode);
     const container = document.getElementById('notesList');
@@ -202,4 +234,5 @@ export function setViewMode(mode) {
         gridBtn.classList.add('active');
         listBtn.classList.remove('active');
     }
+    // (Kode reset tombol edit SUDAH DIHAPUS dari sini)
 }
