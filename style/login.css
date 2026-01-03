@@ -1,148 +1,197 @@
-/* login.css */
+/* login.css - Versi Anti-Nightmare */
 
-/* Pengaturan dasar untuk body */
+:root {
+  --primary: #2563eb;       /* Biru Modern */
+  --primary-hover: #1d4ed8;
+  --bg-page: #f3f4f6;       /* Abu-abu soft */
+  --bg-card: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --error: #ef4444;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body.login-body {
   font-family: 'Inter', sans-serif;
-  /* Menggunakan warna dari style.css Tuan Cecep (bg-soft-blue) */
-  background-color: #F8F9FD;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  /* PENTING: Gunakan min-height 100vh agar aman saat keyboard muncul */
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   padding: 1rem;
 }
 
-/* Kartu utama untuk login dan register */
-.auth-card {
-  background-color: #FFFFFF;
+/* Wrapper agar layout stabil */
+.login-container {
   width: 100%;
-  max-width: 448px; /* Ini setara dengan max-w-md */
-  padding: 2rem; /* setara p-8 */
-  border-radius: 1rem; /* setara rounded-2xl */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* setara shadow-lg */
-  border: 1px solid #E5E9F2; /* border-blue-100 */
+  display: flex;
+  justify-content: center;
 }
 
-/* Header di dalam kartu (Judul dan sub-judul) */
+.auth-card {
+  background-color: var(--bg-card);
+  width: 100%;
+  max-width: 400px; /* Lebar ideal untuk login */
+  padding: 2.5rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+              0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  
+  /* Animasi Masuk */
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header Style */
 .auth-header {
   text-align: center;
-  margin-bottom: 2rem; /* setara mb-8 */
+  margin-bottom: 2rem;
+}
+
+.brand-logo {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
 }
 
 .auth-header h1 {
-  font-size: 1.875rem; /* setara text-3xl */
-  font-weight: 700; /* setara font-bold */
-  color: #1e40af; /* setara text-blue-800 */
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
 }
 
 .auth-header p {
-  color: #64748b; /* setara text-slate-500 */
-  margin-top: 0.5rem; /* setara mt-2 */
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
-/* Grup form (label + input) */
+/* Form Styles */
 .form-group {
-  margin-bottom: 1rem; /* setara mb-4 */
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
   display: block;
-  font-size: 0.875rem; /* setara text-sm */
-  font-weight: 500; /* setara font-medium */
-  color: #334155; /* setara text-slate-700 */
-  margin-bottom: 0.25rem; /* setara mb-1 */
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
 }
 
-/* Input form */
 .form-input {
   width: 100%;
-  padding: 0.75rem 1rem; /* setara px-4 py-3 */
-  border: 1px solid #bfdbfe; /* setara border-blue-200 */
-  border-radius: 0.5rem; /* setara rounded-lg */
-  transition: all 0.2s ease;
-  font-size: 1rem;
-  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: #fafafa;
+  font-size: 1rem; /* Ukuran font 16px mencegah zoom di iOS */
+  transition: all 0.2s;
+  color: var(--text-main);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6; /* Aksi dari focus:ring-blue-400 */
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); /* Aksi dari focus:ring-2 */
+  border-color: var(--primary);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Tombol */
+/* Buttons */
 .btn {
   width: 100%;
-  font-weight: 700; /* setara font-bold */
-  padding: 0.75rem 1rem; /* setara py-3 px-4 */
-  border-radius: 0.5rem; /* setara rounded-lg */
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
   font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem; /* setara gap-3 */
+  gap: 0.5rem;
+  
+  /* Hilangkan highlight biru saat tap di Android */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary {
-  background-color: #3b82f6; /* setara bg-blue-500 */
+  background-color: var(--primary);
   color: white;
   border: none;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb; /* setara hover:bg-blue-600 */
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
-/* Tombol Google */
+.btn-primary:active {
+  transform: translateY(0);
+}
+
 .btn-google {
   background-color: white;
-  border: 1px solid #cbd5e1; /* setara border-slate-300 */
-  color: #334155; /* setara text-slate-700 */
-  font-weight: 600; /* setara font-semibold */
+  border: 1px solid var(--border);
+  color: var(--text-main);
 }
 
 .btn-google:hover {
-  background-color: #f8fafc; /* setara hover:bg-slate-50 */
+  background-color: #f9fafb;
+  border-color: #d1d5db;
 }
 
 .btn-google img {
-  height: 1.25rem; /* setara h-5 */
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-/* Pemisah "ATAU" */
+/* Divider */
 .divider {
   display: flex;
   align-items: center;
-  margin: 1.5rem 0; /* setara my-6 */
+  margin: 1.5rem 0;
 }
 
 .divider::before,
 .divider::after {
   content: '';
-  flex-grow: 1;
-  border-top: 1px solid #cbd5e1; /* setara border-slate-300 */
+  flex: 1;
+  border-top: 1px solid var(--border);
 }
 
 .divider span {
-  flex-shrink: 0;
-  margin: 0 1rem; /* setara mx-4 */
-  color: #94a3b8; /* setara text-slate-400 */
-  font-size: 0.875rem; /* setara text-sm */
+  padding: 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-/* Link untuk pindah halaman (Daftar/Masuk) */
+/* Footer Links */
 .auth-toggle {
   text-align: center;
-  font-size: 0.875rem; /* setara text-sm */
-  color: #475569; /* setara text-slate-600 */
-  margin-top: 2rem; /* setara mt-8 */
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 .auth-toggle a {
-  font-weight: 600; /* setara font-semibold */
-  color: #2563eb; /* setara text-blue-600 */
+  color: var(--primary);
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -150,16 +199,56 @@ body.login-body {
   text-decoration: underline;
 }
 
-/* Pesan Error */
+/* Error Message */
 .error-message {
   text-align: center;
-  color: #ef4444; /* setara text-red-500 */
-  font-size: 0.875rem; /* setara text-sm */
-  margin-top: 1rem; /* setara mt-4 */
-  height: 1rem; /* setara h-4 */
+  color: var(--error);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  min-height: 1.25rem;
 }
 
-/* Aturan untuk menyembunyikan/menampilkan halaman */
 .hidden {
   display: none;
+}
+
+/* --- DARK MODE SUPPORT (Otomatis ngikut sistem HP) --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #111827;      /* Gelap banget */
+    --bg-card: #1f2937;      /* Gelap medium */
+    --text-main: #f3f4f6;    /* Putih */
+    --text-muted: #9ca3af;   /* Abu-abu */
+    --border: #374151;
+  }
+  
+  .form-input {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: white;
+  }
+  
+  .form-input:focus {
+    background-color: #4b5563;
+  }
+
+  .btn-google {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: white;
+  }
+  
+  .btn-google:hover {
+    background-color: #4b5563;
+  }
+}
+
+/* --- TWEAK KHUSUS HP KECIL (iPhone SE / Fold) --- */
+@media (max-width: 380px) {
+    .auth-card {
+        padding: 2rem 1.25rem;
+    }
+    .auth-header h1 {
+        font-size: 1.25rem;
+    }
 }

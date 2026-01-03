@@ -2,81 +2,92 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Notonlen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Masuk - Notonlen</title>
+    
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
     
     <link rel="stylesheet" href="/style/login.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    </head>
+</head>
 <body class="login-body">
 
-    <div class="auth-card" id="loginPage">
+    <div class="login-container">
         
-        <div class="auth-header">
-            <h1>Selamat Datang di Notonlen</h1>
-            <p>Masuk untuk melanjutkan ke catatan Anda.</p>
-        </div>
-        
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="loginEmail">Email</label>
-                <input type="email" id="loginEmail" class="form-input" required>
+        <div class="auth-card" id="loginPage">
+            <div class="auth-header">
+                <div class="brand-logo">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <h1>Selamat Datang</h1>
+                <p>Lanjutkan mencatat ide-ide brilianmu.</p>
             </div>
             
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label for="loginPassword">Password</label>
-                <input type="password" id="loginPassword" class="form-input" required>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="contoh@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    Masuk
+                </button>
+            </form>
+            
+            <div class="divider">
+                <span>ATAU</span>
             </div>
             
-            <button type="submit" class="btn btn-primary">Masuk</button>
-        </form>
-        
-        <div class="divider">
-            <span>ATAU</span>
+            <button id="googleSignInBtn" class="btn btn-google">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+                Masuk dengan Google
+            </button>
+            
+            <p class="auth-toggle">
+                Belum punya akun? <a href="#" id="showRegisterPage">Daftar sekarang</a>
+            </p>
+            
+            <p id="errorMessage" class="error-message"></p>
         </div>
-        
-        <button id="googleSignInBtn" class="btn btn-google">
-            <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google logo">
-            Masuk dengan Google
-        </button>
-        
-        <p class="auth-toggle">
-            Belum punya akun? <a href="#" id="showRegisterPage">Daftar di sini</a>
-        </p>
-        
-        <p id="errorMessage" class="error-message"></p>
-    </div>
 
-    <div id="registerPage" class="auth-card hidden">
-        <div class="auth-header">
-            <h1>Buat Akun Baru</h1>
-            <p>Mulai perjalanan mencatat Anda.</p>
+        <div id="registerPage" class="auth-card hidden">
+            <div class="auth-header">
+                <div class="brand-logo">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h1>Buat Akun Baru</h1>
+                <p>Mulai perjalanan produktivitas Anda.</p>
+            </div>
+            <form id="registerForm">
+                 <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="nama@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="Minimal 6 karakter" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Daftar Akun
+                </button>
+            </form>
+            <p class="auth-toggle">
+                Sudah punya akun? <a href="#" id="showLoginPage">Masuk di sini</a>
+            </p>
+             <p id="registerErrorMessage" class="error-message"></p>
         </div>
-        <form id="registerForm">
-             <div class="form-group">
-                <label for="registerEmail">Email</label>
-                <input type="email" id="registerEmail" class="form-input" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label for="registerPassword">Password (minimal 6 karakter)</label>
-                <input type="password" id="registerPassword" class="form-input" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Daftar</button>
-        </form>
-        <p class="auth-toggle">
-            Sudah punya akun? <a href="#" id="showLoginPage">Masuk di sini</a>
-        </p>
-         <p id="registerErrorMessage" class="error-message"></p>
+
     </div>
 
     <script type="module">
-        // Langkah 1: Impor auth dari file konfigurasi terpusat
         import { auth } from './firebase-config.js';
-
-        // Langkah 2: Impor fungsi-fungsi lain yang dibutuhkan halaman ini
         import { 
             onAuthStateChanged,
             createUserWithEmailAndPassword,
@@ -84,8 +95,6 @@
             GoogleAuthProvider,
             signInWithPopup
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Konfigurasi dan inisialisasi sudah tidak ada di sini lagi!
 
         const loginPage = document.getElementById('loginPage');
         const registerPage = document.getElementById('registerPage');
@@ -106,7 +115,6 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Ganti "notonlen.html" dengan nama file halaman catatan utama Anda
                 window.location.href = 'index.html'; 
             }
         });
@@ -117,9 +125,18 @@
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            
+            // UI Feedback (Opsional: Disable tombol biar gak klik 2x)
+            const btn = loginForm.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Memproses...';
+            btn.disabled = true;
+
             signInWithEmailAndPassword(auth, email, password)
                 .catch((error) => {
                     errorMessage.textContent = getFriendlyErrorMessage(error.code);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 });
         });
 
@@ -129,9 +146,18 @@
             e.preventDefault();
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
+
+             // UI Feedback
+            const btn = registerForm.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Mendaftar...';
+            btn.disabled = true;
+
             createUserWithEmailAndPassword(auth, email, password)
                 .catch((error) => {
                     registerErrorMessage.textContent = getFriendlyErrorMessage(error.code);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 });
         });
 
@@ -151,7 +177,7 @@
                 case 'auth/wrong-password': return 'Email atau password salah.';
                 case 'auth/email-already-in-use': return 'Email ini sudah terdaftar.';
                 case 'auth/weak-password': return 'Password terlalu lemah, gunakan minimal 6 karakter.';
-                default: return 'Terjadi kesalahan. Silakan coba lagi.';
+                default: return 'Terjadi kesalahan (' + errorCode + ').';
             }
         }
     </script>
