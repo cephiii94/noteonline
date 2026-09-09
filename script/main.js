@@ -8,6 +8,8 @@ import * as UI from './ui-handler.js';
 // --- Global State ---
 let userId = null;
 let allNotes = [];       // Menyimpan SEMUA data mentah dari Firebase
+let currentFilteredNotes = []; // Menyimpan data catatan yang sedang tampil di layar
+let currentViewNoteId = null;  // ID catatan yang sedang dibuka di modal
 let currentCategory = "All";
 let currentFilter = "all"; // 'all' (Utama) atau 'archived' (Arsip)
 
@@ -97,6 +99,7 @@ function filterAndRender() {
     });
 
     // 4. Tampilkan ke Layar
+    currentFilteredNotes = filteredNotes;
     UI.renderNotesList(filteredNotes, currentFilter, 'notesList');
 }
 
@@ -134,7 +137,11 @@ function initializeEventListeners() {
             UI.closeModal('viewModal');
         }
         
-        if (action === 'view') UI.showViewModal(note);
+        if (action === 'view') {
+            currentViewNoteId = id;
+            UI.showViewModal(note);
+            updateNavState();
+        }
     };
 
     // --- UI Dasar ---
@@ -225,6 +232,124 @@ function initializeEventListeners() {
             const m = document.getElementById(id);
             if(m && e.target === m) UI.closeModal(id);
         });
+    });
+
+    // --- Navigasi Antar Catatan (Arrow Kiri / Kanan) ---
+    function updateNavState() {
+        if (!currentViewNoteId || currentFilteredNotes.length === 0) return;
+        const idx = currentFilteredNotes.findIndex(n => n.id === currentViewNoteId);
+        const total = currentFilteredNotes.length;
+
+        const prevBtns = [document.getElementById('viewPrevBtn'), document.getElementById('viewFooterPrevBtn')];
+        const nextBtns = [document.getElementById('viewNextBtn'), document.getElementById('viewFooterNextBtn')];
+        const counters = [document.getElementById('viewNavCounter'), document.getElementById('viewFooterNavCounter')];
+
+        counters.forEach(c => {
+            if (c) c.textContent = total > 0 && idx !== -1 ? `${idx + 1} / ${total}` : '';
+        });
+
+        prevBtns.forEach(btn => {
+            if (btn) {
+                btn.disabled = (idx <= 0);
+                btn.style.opacity = (idx <= 0) ? '0.3' : '1';
+                btn.style.cursor = (idx <= 0) ? 'not-allowed' : 'pointer';
+            }
+        });
+
+        nextBtns.forEach(btn => {
+            if (btn) {
+                btn.disabled = (idx >= total - 1 || idx === -1);
+                btn.style.opacity = (idx >= total - 1 || idx === -1) ? '0.3' : '1';
+                btn.style.cursor = (idx >= total - 1 || idx === -1) ? 'not-allowed' : 'pointer';
+            }
+        });
+    }
+
+    function navigateNote(direction) {
+        if (!currentViewNoteId || currentFilteredNotes.length <= 1) return;
+        const currentIndex = currentFilteredNotes.findIndex(n => n.id === currentViewNoteId);
+        if (currentIndex === -1) return;
+
+        const targetIndex = currentIndex + direction;
+        if (targetIndex >= 0 && targetIndex < currentFilteredNotes.length) {
+            const targetNote = currentFilteredNotes[targetIndex];
+            currentViewNoteId = targetNote.id;
+            UI.showViewModal(targetNote);
+            updateNavState();
+        }
+    }
+
+    // Event listener tombol navigasi (header & footer)
+    ['viewPrevBtn', 'viewFooterPrevBtn'].forEach(id => {
+        Utils.safeAddListener(id, 'click', (e) => {
+            e.stopPropagation();
+            navigateNote(-1);
+        });
+    });
+    ['viewNextBtn', 'viewFooterNextBtn'].forEach(id => {
+        Utils.safeAddListener(id, 'click', (e) => {
+            e.stopPropagation();
+            navigateNote(1);
+        });
+    });
+
+    // --- Keyboard Navigation: ESC (Tutup) & Arrow Kiri/Kanan (Ganti Catatan) ---
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            // 1. Tutup Dropdown Menu jika sedang aktif
+            const drop = document.getElementById('viewNoteDropdownMenu');
+            if (drop && drop.classList.contains('is-visible')) {
+                drop.classList.remove('is-visible');
+                return;
+            }
+
+            // 2. Tutup Modal yang sedang terbuka
+            let modalClosed = false;
+            ['editModal', 'addModal', 'viewModal'].forEach(id => {
+                const m = document.getElementById(id);
+                if (m && m.classList.contains('is-visible')) {
+                    UI.closeModal(id);
+                    modalClosed = true;
+                }
+            });
+
+            // 3. Tutup Sidebar mobile jika tidak ada modal yang ditutup
+            if (!modalClosed) {
+                Utils.closeSidebar();
+            }
+            return;
+        }
+
+        // Navigasi Arrow Kiri & Kanan antar catatan (hanya saat viewModal terbuka)
+        const viewModal = document.getElementById('viewModal');
+        if (viewModal && viewModal.classList.contains('is-visible')) {
+            // Hindari tombol arrow saat mengetik di dalam input/textarea/editable
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) || document.activeElement.isContentEditable) {
+                return;
+            }
+
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                navigateNote(-1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                navigateNote(1);
+            }
+        }
+    });
+
+    // --- Tombol Back Mobile (Hardware Back / Gesture Android / Browser Back) ---
+    window.addEventListener('popstate', () => {
+        const openModals = document.querySelectorAll('.modal-overlay.is-visible');
+        if (openModals.length > 0) {
+            openModals.forEach(m => {
+                m.classList.remove('is-visible');
+            });
+            const dropdown = document.getElementById('viewNoteDropdownMenu');
+            if (dropdown) dropdown.classList.remove('is-visible');
+        } else {
+            Utils.closeSidebar();
+        }
     });
 
     // --- Delegasi Tombol Aksi (List Utama) ---

@@ -88,12 +88,15 @@
         </nav>
                 
         <div class="sidebar-footer">
-            <div id="themeToggle" class="dark-mode-toggle">
-                <span class="dark-mode-label">Mode Gelap</span>
-                <button class="theme-toggle-btn">
-                    <i class="fas fa-moon"></i> 
-                    <i class="fas fa-sun"></i>
-                </button>
+            <div class="sidebar-profile-card">
+                <div class="profile-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div id="userInfo" class="user-info">
+                    <p class="user-info-name" id="userNameDisplay">Memuat...</p>
+                    <p class="user-info-email" id="userEmailDisplay"></p>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Keluar">
             </div>
             <p>&copy; 2025 Notonlen</p>
         </div>
@@ -108,32 +111,22 @@
 
                 <div class="search-bar">
                     <i class="fas fa-search icon"></i>
-                    <input type="search" id="searchInput" placeholder="Search..." class="search-input">
+                    <input type="search" id="searchInput" placeholder="Cari catatan..." class="search-input">
                 </div>
-            </div>
-            
-            <div class="search-bar-mobile">
-                <i class="fas fa-search icon"></i>
-                <input type="search" id="mobileSearchInput" placeholder="Search..." class="search-input">
+
+                <button id="themeToggle" class="theme-toggle-btn header-theme-btn" title="Ganti Mode Gelap/Terang">
+                    <i class="fas fa-moon"></i> 
+                    <i class="fas fa-sun"></i>
+                </button>
             </div>
             
             <div class="header-right">
-                
                 <button id="openAddModalBtn" class="btn btn-primary header-add-btn">
                     <i class="fas fa-plus"></i>
                     <span class="text">Tambah Catatan</span>
                 </button>
-                
-                <div id="userInfo" class="user-info">
-                    <p class="user-info-name" id="userNameDisplay">Memuat...</p>
-                    <p class="user-info-email" id="userEmailDisplay"></p>
-                </div>
-                <button id="logoutBtn" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="text">Keluar</span>
-                </button>
             </div>
-            </header>
+        </header>
 
         <div class="notes-area">
             <div class="notes-header-bar">
@@ -239,6 +232,16 @@
                     <p id="viewNoteDate"></p>
                 </div>
 
+                <div class="view-nav-buttons" style="display: flex; align-items: center; gap: 0.25rem; margin-right: 0.25rem;">
+                    <button id="viewPrevBtn" class="modal-icon-btn" title="Catatan Sebelumnya (Arrow Left)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="viewNavCounter" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; min-width: 35px; text-align: center;"></span>
+                    <button id="viewNextBtn" class="modal-icon-btn" title="Catatan Berikutnya (Arrow Right)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
                 <button id="closeView" class="modal-close-btn desktop-only">
                     <i class="fas fa-times"></i>
                 </button>
@@ -289,13 +292,16 @@
                     <p>Tautan Produk</p>
                     <a id="viewProductLink" href="#" target="_blank"></a>
                 </div>
-
-                <div id="productLinkContainer" class="hidden" style="margin-top: 1rem;">
-                    <p>Tautan Produk</p>
-                    <a id="viewProductLink" href="#" target="_blank"></a>
-                </div>
             </div> <div class="modal-footer view-modal-footer">
-                <div></div> 
+                <div class="view-nav-buttons-footer" style="display: flex; align-items: center; gap: 0.25rem;">
+                    <button id="viewFooterPrevBtn" class="note-action-btn" title="Catatan Sebelumnya (Arrow Left)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="viewFooterNavCounter" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; min-width: 35px; text-align: center;"></span>
+                    <button id="viewFooterNextBtn" class="note-action-btn" title="Catatan Berikutnya (Arrow Right)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div> 
 
                 <div class="note-action-group">
                     <button id="viewFooterUnarchiveBtn" class="note-action-btn unarchive-btn hidden" title="Batal Arsip">

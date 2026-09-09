@@ -47,11 +47,16 @@
         </nav>
                 
         <div class="sidebar-footer">
-            <div id="themeToggle" class="dark-mode-toggle">
-                <span class="dark-mode-label">Mode Gelap</span>
-                <button class="theme-toggle-btn">
-                    <i class="fas fa-moon"></i> 
-                    <i class="fas fa-sun"></i>
+            <div class="sidebar-profile-card">
+                <div class="profile-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div id="userInfo" class="user-info">
+                    <p class="user-info-name" id="userNameDisplay">Memuat...</p>
+                    <p class="user-info-email" id="userEmailDisplay"></p>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Keluar">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
             <p>&copy; 2025 Notonlen</p>
@@ -66,17 +71,6 @@
                 </button>
                 <h1 class="notes-title" style="font-size: 1.25rem;">Kanban Board</h1>
             </div>
-            
-            <div class="header-right">
-                <div id="userInfo" class="user-info">
-                    <p class="user-info-name" id="userNameDisplay">Memuat...</p>
-                    <p class="user-info-email" id="userEmailDisplay"></p>
-                </div>
-                <button id="logoutBtn" class="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="text">Keluar</span>
-                </button>
-            </div>
         </header>
 
         <div class="kanban-toolbar">
@@ -88,7 +82,12 @@
             </select>
             <button id="addBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah</button>
             
-            <div style="flex: 1;"></div> <input id="search" class="tool-input" placeholder="Cari kartu..." style="flex: 1;">
+            <div style="flex: 1;"></div> 
+            <input id="search" class="tool-input" placeholder="Cari kartu..." style="flex: 1; max-width: 250px;">
+            <button id="themeToggle" class="theme-toggle-btn header-theme-btn" title="Ganti Mode Gelap/Terang" style="margin-left: 0.25rem;">
+                <i class="fas fa-moon"></i> 
+                <i class="fas fa-sun"></i>
+            </button>
             <button id="resetBtn" class="btn btn-secondary" title="Reset"><i class="fas fa-redo"></i></button>
             <button id="exportBtn" class="btn btn-secondary" title="Export JSON"><i class="fas fa-download"></i></button>
             <input type="file" id="importFile" accept="application/json" style="display:none" />

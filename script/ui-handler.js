@@ -1,5 +1,5 @@
 // script/ui-handler.js
-import { formatDate, escapeHTML } from './utils.js';
+import { formatDate, escapeHTML, linkifyHTML } from './utils.js';
 
 let addEditor, editEditor; // Instance Quill
 
@@ -122,27 +122,48 @@ export function renderNotesList(notes, currentFilter, containerId) {
 // --- Modals ---
 export function openModal(modalId) {
     const modal = document.getElementById(modalId);
-    if(modal) modal.classList.add('is-visible');
+    if(modal) {
+        modal.classList.add('is-visible');
+        // Sinkronisasi history browser agar tombol back HP menutup popup
+        if (!history.state || !history.state.modalOpen) {
+            history.pushState({ modalOpen: modalId }, '');
+        }
+    }
 }
 
 export function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    if(modal) modal.classList.remove('is-visible');
-    
-    // Khusus viewModal, tutup juga dropdown menu
-    if(modalId === 'viewModal') {
-        const dropdown = document.getElementById('viewNoteDropdownMenu');
-        if(dropdown) dropdown.classList.remove('is-visible');
+    if(modal) {
+        modal.classList.remove('is-visible');
+        // Khusus viewModal, tutup juga dropdown menu
+        if(modalId === 'viewModal') {
+            const dropdown = document.getElementById('viewNoteDropdownMenu');
+            if(dropdown) dropdown.classList.remove('is-visible');
+        }
+    }
+
+    // Jika semua modal sudah tertutup dan ada history modalOpen, kembalikan state history
+    const anyModalOpen = document.querySelector('.modal-overlay.is-visible');
+    if (!anyModalOpen && history.state && history.state.modalOpen) {
+        history.back();
     }
 }
 
 export function showViewModal(note) {
     const viewModal = document.getElementById('viewModal');
     
-    // Set Content
+    // Set Content (Smart Read Links)
     document.getElementById('viewNoteTitle').textContent = note.title;
     document.getElementById('viewNoteCategory').textContent = note.category;
-    document.getElementById('viewNoteContent').innerHTML = note.content;
+    document.getElementById('viewNoteContent').innerHTML = linkifyHTML(note.content);
+    
+    // Set Date
+    let safeDate;
+    if (note.updatedAt) {
+        safeDate = typeof note.updatedAt.toDate === 'function' ? note.updatedAt.toDate() : new Date(note.updatedAt);
+    }
+    const dateEl = document.getElementById('viewNoteDate');
+    if (dateEl) dateEl.textContent = safeDate ? formatDate(safeDate) : '';
     
     // Set Tags
     const tagsContainer = document.getElementById('viewNoteTags');

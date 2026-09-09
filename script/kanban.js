@@ -12,6 +12,12 @@ Utils.safeAddListener('mobile-menu-toggle', 'click', Utils.toggleSidebar);
 Utils.safeAddListener('desktop-menu-toggle', 'click', Utils.toggleSidebar);
 Utils.safeAddListener('sidebar-overlay', 'click', Utils.closeSidebar);
 
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        Utils.closeSidebar();
+    }
+});
+
 const savedTheme = localStorage.getItem('theme');
 if(savedTheme) Utils.setTheme(savedTheme);
 Utils.safeAddListener('themeToggle', 'click', () => {
