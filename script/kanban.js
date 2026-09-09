@@ -6,6 +6,13 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 import * as Utils from './utils.js'; 
+import { initAllCustomDropdowns } from './custom-select.js';
+
+// Initialize Custom Dropdowns
+document.addEventListener('DOMContentLoaded', () => {
+    initAllCustomDropdowns();
+});
+initAllCustomDropdowns();
 
 // --- Integrasi Sidebar & Tema ---
 Utils.safeAddListener('mobile-menu-toggle', 'click', Utils.toggleSidebar);

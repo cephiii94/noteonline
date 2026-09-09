@@ -13,16 +13,25 @@ export function initializeEditors() {
         ['clean']
     ];
 
-    // Cek elemen dulu biar gak error
     if(document.getElementById('addEditorContainer')) {
         addEditor = new Quill('#addEditorContainer', {
             theme: 'snow', placeholder: 'Tulis catatanmu...', modules: { toolbar: toolbarOptions }
         });
+        const toolbarEl = document.querySelector('#addModal .ql-toolbar');
+        const targetContainer = document.getElementById('addToolbarContainer');
+        if (toolbarEl && targetContainer) {
+            targetContainer.appendChild(toolbarEl);
+        }
     }
     if(document.getElementById('editEditorContainer')) {
         editEditor = new Quill('#editEditorContainer', {
             theme: 'snow', modules: { toolbar: toolbarOptions }
         });
+        const toolbarEl = document.querySelector('#editModal .ql-toolbar');
+        const targetContainer = document.getElementById('editToolbarContainer');
+        if (toolbarEl && targetContainer) {
+            targetContainer.appendChild(toolbarEl);
+        }
     }
 }
 

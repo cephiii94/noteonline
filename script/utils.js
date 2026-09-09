@@ -27,10 +27,15 @@ export function safeAddListener(id, event, handler) {
 // Helper: Set Tema (Dark/Light)
 export function setTheme(themeName) {
     localStorage.setItem('theme', themeName);
-    if (themeName === 'dark') {
-        document.body.classList.add('dark-mode');
+    const isDark = themeName === 'dark';
+    if (isDark) {
+        document.body.classList.add('dark-mode', 'dark');
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
     } else {
-        document.body.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode', 'dark');
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
     }
 }
 

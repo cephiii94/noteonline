@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/fi
 import * as Utils from './utils.js';
 import * as FirebaseService from './firebase-service.js';
 import * as UI from './ui-handler.js';
+import { initAllCustomDropdowns } from './custom-select.js';
 
 // --- Global State ---
 let userId = null;
@@ -175,6 +176,7 @@ function updateBulkActionBar() {
 
 // --- 2. EVENT LISTENERS (Menghubungkan Tombol dengan Fungsi) ---
 function initializeEventListeners() {
+    initAllCustomDropdowns();
 
     // --- Helper untuk Tombol Aksi ---
     const handleNoteAction = (action, id) => {
