@@ -48,7 +48,7 @@ export function setEditEditorContent(html) {
 }
 
 // --- Render Notes (BAGIAN YANG DIPERBAIKI BRI) ---
-export function renderNotesList(notes, currentFilter, containerId) {
+export function renderNotesList(notes, currentFilter, containerId, isSelectionMode = false, selectedNoteIds = new Set()) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
@@ -87,8 +87,15 @@ export function renderNotesList(notes, currentFilter, containerId) {
                 <button class="note-action-btn unarchive-btn" data-id="${note.id}" title="Kembalikan"><i class="fas fa-box-open"></i></button>
                 <button class="note-action-btn delete-btn" data-id="${note.id}" title="Hapus Permanen"><i class="fas fa-trash"></i></button>
             `;
+        } else if (currentFilter === 'vault' || note.isVault === true || note.category === 'Brankas') {
+            actionButtonsHTML = `
+                <button class="note-action-btn unvault-btn" data-id="${note.id}" title="Keluarkan dari Brankas"><i class="fas fa-lock-open"></i></button>
+                <button class="note-action-btn delete-btn" data-id="${note.id}" title="Hapus"><i class="fas fa-trash"></i></button>
+                <button class="note-action-btn edit-btn" data-id="${note.id}" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+            `;
         } else {
             actionButtonsHTML = `
+                <button class="note-action-btn vault-btn" data-id="${note.id}" title="Pindah ke Brankas"><i class="fas fa-lock"></i></button>
                 <button class="note-action-btn pin-btn ${pinIconClass}" data-id="${note.id}" title="Pin"><i class="fas fa-thumbtack"></i></button>
                 <button class="note-action-btn archive-btn" data-id="${note.id}" title="Arsipkan"><i class="fas fa-box-archive"></i></button>
                 <button class="note-action-btn delete-btn" data-id="${note.id}" title="Hapus"><i class="fas fa-trash"></i></button>
@@ -100,10 +107,19 @@ export function renderNotesList(notes, currentFilter, containerId) {
             ? `<div class="note-card-tags">${note.tags.slice(0, 3).map(tag => `<span class="note-tag">${escapeHTML(tag)}</span>`).join('')}${note.tags.length > 3 ? `<span class="note-tag">+${note.tags.length - 3}</span>` : ''}</div>` 
             : '';
 
+        const isSelected = selectedNoteIds.has(note.id);
+        const selectedClass = isSelected ? 'is-selected' : '';
+        const checkboxVisibleClass = isSelectionMode ? 'is-visible' : '';
+
         const cardHTML = `
-            <div class="note-card ${pinnedClass}" data-id="${note.id}">
+            <div class="note-card ${pinnedClass} ${selectedClass}" data-id="${note.id}">
                 <div class="note-card-header">
-                    <span class="note-card-category">${escapeHTML(note.category)}</span>
+                    <div class="note-card-header-left">
+                        <div class="note-card-checkbox-container ${checkboxVisibleClass}">
+                            <input type="checkbox" class="note-card-checkbox" data-id="${note.id}" ${isSelected ? 'checked' : ''}>
+                        </div>
+                        <span class="note-card-category">${escapeHTML(note.category)}</span>
+                    </div>
                     <span class="note-card-date">${dateStr}</span>
                 </div>
                 <div class="note-card-body">
@@ -190,16 +206,16 @@ export function showViewModal(note) {
 
     // Update Dataset ID semua tombol aksi
     const actionButtonIds = [
-        'viewHeaderEditBtn', 'viewHeaderDeleteBtn', 'viewHeaderArchiveBtn', 'viewHeaderUnarchiveBtn',
-        'viewMenuEdit', 'viewMenuDelete', 'viewMenuArchive', 'viewMenuUnarchive',
-        'editFab', 'viewFooterEditBtn', 'viewFooterDeleteBtn', 'viewFooterArchiveBtn', 'viewFooterUnarchiveBtn'
+        'viewHeaderEditBtn', 'viewHeaderDeleteBtn', 'viewHeaderArchiveBtn', 'viewHeaderUnarchiveBtn', 'viewHeaderVaultBtn', 'viewHeaderUnvaultBtn',
+        'viewMenuEdit', 'viewMenuDelete', 'viewMenuArchive', 'viewMenuUnarchive', 'viewMenuVault', 'viewMenuUnvault',
+        'editFab', 'viewFooterEditBtn', 'viewFooterDeleteBtn', 'viewFooterArchiveBtn', 'viewFooterUnarchiveBtn', 'viewFooterVaultBtn', 'viewFooterUnvaultBtn'
     ];
     actionButtonIds.forEach(id => {
         const btn = document.getElementById(id);
         if(btn) btn.dataset.id = note.id;
     });
 
-    // Handle visibility Tombol Arsip (Header & Footer)
+    // Handle visibility Tombol Arsip & Brankas (Header & Footer)
     const toggleHidden = (ids, hide) => ids.forEach(id => {
         const el = document.getElementById(id);
         if(el) hide ? el.classList.add('hidden') : el.classList.remove('hidden');
@@ -207,13 +223,25 @@ export function showViewModal(note) {
 
     const archiveBtns = ['viewHeaderArchiveBtn', 'viewMenuArchive', 'viewFooterArchiveBtn'];
     const unarchiveBtns = ['viewHeaderUnarchiveBtn', 'viewMenuUnarchive', 'viewFooterUnarchiveBtn'];
+    const vaultBtns = ['viewHeaderVaultBtn', 'viewMenuVault', 'viewFooterVaultBtn'];
+    const unvaultBtns = ['viewHeaderUnvaultBtn', 'viewMenuUnvault', 'viewFooterUnvaultBtn'];
 
     if (note.isArchived) {
         toggleHidden(archiveBtns, true); // Sembunyikan tombol arsip
         toggleHidden(unarchiveBtns, false); // Munculkan tombol unarchive
+        toggleHidden(vaultBtns, true); // Sembunyikan tombol vault saat arsip
     } else {
         toggleHidden(archiveBtns, false);
         toggleHidden(unarchiveBtns, true);
+    }
+
+    const isVaultNote = note.isVault === true || note.category === 'Brankas';
+    if (isVaultNote) {
+        toggleHidden(vaultBtns, true);
+        toggleHidden(unvaultBtns, false);
+    } else {
+        if (!note.isArchived) toggleHidden(vaultBtns, false);
+        toggleHidden(unvaultBtns, true);
     }
 
     openModal('viewModal');

@@ -45,6 +45,11 @@
                 <i class="fas fa-archive icon"></i>
                 <span>Arsip</span>
             </a>
+
+            <a href="#" class="nav-link vault-filter" id="vaultFilterBtn">
+                <i class="fas fa-lock icon"></i>
+                <span>Brankas</span>
+            </a>
         </nav>
             
         <nav class="nav-menu">
@@ -133,6 +138,9 @@
                 <h1 id="notesHeader" class="notes-title">Semua Catatan</h1>
                 
                 <div class="view-toggle-buttons">
+                    <button id="selectModeBtn" class="view-toggle-btn" title="Pilih Banyak Catatan">
+                        <i class="fas fa-check-square"></i>
+                    </button>
                     <button id="gridViewBtn" class="view-toggle-btn active" title="Tampilan Grid">
                         <i class="fas fa-grip-horizontal"></i>
                     </button>
@@ -144,6 +152,52 @@
             
             <div id="notesList" class="notes-grid">
                 <p id="loadingMessage" class="notes-empty-message">Memuat catatan...</p>
+            </div>
+        </div>
+
+        <!-- Floating Bulk Action Bar (Menu Pilih Banyak) -->
+        <div id="bulkActionBar" class="bulk-action-bar hidden">
+            <div class="bulk-action-inner">
+                <div class="bulk-left-group">
+                    <button type="button" id="bulkSelectAllBtn" class="bulk-btn bulk-btn-subtle" title="Pilih Semua / Batal Pilih">
+                        <i class="far fa-check-square"></i>
+                        <span id="bulkSelectAllText">Pilih Semua</span>
+                    </button>
+                    <span id="bulkSelectCount" class="bulk-count-badge">0 dipilih</span>
+                </div>
+
+                <div class="bulk-right-group">
+                    <div class="bulk-select-wrapper">
+                        <select id="bulkCategorySelect" class="bulk-category-dropdown">
+                            <option value="" disabled selected>Pindah Kategori...</option>
+                            <option value="Personal">📋 Personal</option>
+                            <option value="Bisnis">📈 Bisnis</option>
+                            <option value="Proyek">📁 Proyek</option>
+                            <option value="Work">💼 Pekerjaan</option>
+                            <option value="Idea">💡 Ide</option>
+                            <option value="Learning">📚 Belajar</option>
+                        </select>
+                    </div>
+
+                    <button type="button" id="bulkMoveToVaultBtn" class="bulk-btn bulk-btn-subtle" title="Pindah ke Brankas">
+                        <i class="fas fa-lock"></i>
+                        <span class="btn-label">Brankas</span>
+                    </button>
+
+                    <button type="button" id="bulkArchiveBtn" class="bulk-btn bulk-btn-subtle" title="Arsipkan">
+                        <i class="fas fa-box-archive"></i>
+                        <span class="btn-label" id="bulkArchiveText">Arsip</span>
+                    </button>
+
+                    <button type="button" id="bulkDeleteBtn" class="bulk-btn bulk-btn-danger" title="Hapus Catatan Terpilih">
+                        <i class="fas fa-trash-alt"></i>
+                        <span class="btn-label">Hapus</span>
+                    </button>
+
+                    <button type="button" id="bulkCancelBtn" class="bulk-btn-close" title="Tutup">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -166,6 +220,7 @@
                         <option value="Work">Pekerjaan</option>
                         <option value="Idea">Ide</option>
                         <option value="Learning">Belajar</option>
+                        <option value="Brankas">🔒 Brankas (Rahasia)</option>
                     </select>
                     
                     <input type="text" id="noteTags" class="form-input" placeholder="Tags (pisahkan koma)">
@@ -200,6 +255,7 @@
                         <option value="Work">Pekerjaan</option>
                         <option value="Idea">Ide</option>
                         <option value="Learning">Belajar</option>
+                        <option value="Brankas">🔒 Brankas (Rahasia)</option>
                     </select>
                     
                     <input type="text" id="editNoteTags" class="form-input" placeholder="Tags (pisahkan koma)">
@@ -256,6 +312,12 @@
                 <button id="viewHeaderUnarchiveBtn" class="modal-icon-btn desktop-only-flex" title="Batal Arsip" style="display: none;">
                     <i class="fas fa-undo"></i>
                 </button>
+                <button id="viewHeaderVaultBtn" class="modal-icon-btn desktop-only-flex" title="Pindah ke Brankas">
+                    <i class="fas fa-lock"></i>
+                </button>
+                <button id="viewHeaderUnvaultBtn" class="modal-icon-btn desktop-only-flex" title="Keluarkan dari Brankas" style="display: none;">
+                    <i class="fas fa-lock-open"></i>
+                </button>
                 
                 <button id="viewHeaderDeleteBtn" class="modal-icon-btn desktop-only-flex" title="Hapus Catatan">
                     <i class="fas fa-trash"></i>
@@ -275,6 +337,12 @@
                 </button>
                 <button id="viewMenuUnarchive" class="view-dropdown-item" style="display: none;">
                     <i class="fas fa-undo"></i> Batal Arsip
+                </button>
+                <button id="viewMenuVault" class="view-dropdown-item">
+                    <i class="fas fa-lock"></i> Pindah ke Brankas
+                </button>
+                <button id="viewMenuUnvault" class="view-dropdown-item" style="display: none;">
+                    <i class="fas fa-lock-open"></i> Keluarkan dari Brankas
                 </button>
                 <button id="viewMenuDelete" class="view-dropdown-item danger">
                     <i class="fas fa-trash"></i> Hapus
@@ -304,6 +372,14 @@
                 </div> 
 
                 <div class="note-action-group">
+                    <button id="viewFooterVaultBtn" class="note-action-btn vault-btn" title="Pindah ke Brankas">
+                        <i class="fas fa-lock"></i>
+                    </button>
+
+                    <button id="viewFooterUnvaultBtn" class="note-action-btn unvault-btn hidden" title="Keluarkan dari Brankas">
+                        <i class="fas fa-lock-open"></i>
+                    </button>
+
                     <button id="viewFooterUnarchiveBtn" class="note-action-btn unarchive-btn hidden" title="Batal Arsip">
                         <i class="fas fa-box-open"></i>
                     </button>
@@ -327,6 +403,44 @@
             <button id="editFab" title="Edit Catatan" class="desktop-only">
                 <i class="fas fa-pencil-alt"></i>
             </button>
+        </div>
+    </div>
+    
+    <!-- Modal Password Brankas -->
+    <div id="vaultPasswordModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header" style="text-align: center; padding-bottom: 0.5rem;">
+                <div style="width: 3.5rem; height: 3.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 1.5rem;">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h2 id="vaultModalTitle" style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">Akses Brankas</h2>
+                <p id="vaultModalSubtitle" style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem;">Masukkan password untuk membuka Brankas.</p>
+            </div>
+            <div class="modal-body" style="padding-top: 1rem;">
+                <form id="vaultPasswordForm">
+                    <div id="vaultEnterPwdGroup">
+                        <input type="password" id="vaultInputPassword" class="form-input" placeholder="Masukkan PIN Angka Brankas" style="margin-bottom: 0.75rem;" inputmode="numeric" pattern="[0-9]*" maxlength="8">
+                    </div>
+
+                    <div id="vaultCreatePwdGroup" class="hidden">
+                        <input type="password" id="vaultNewPassword" class="form-input" placeholder="PIN Angka Baru (min. 4 angka)" style="margin-bottom: 0.75rem;" inputmode="numeric" pattern="[0-9]*" maxlength="8">
+                        <input type="password" id="vaultConfirmPassword" class="form-input" placeholder="Konfirmasi PIN Angka Baru" style="margin-bottom: 0.75rem;" inputmode="numeric" pattern="[0-9]*" maxlength="8">
+                    </div>
+
+                    <p id="vaultPasswordError" style="display: none; color: var(--danger); font-size: 0.85rem; margin-bottom: 0.75rem; text-align: center; font-weight: 500;"></p>
+
+                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                        <button type="button" id="vaultCancelBtn" class="btn btn-secondary" style="flex: 1;">Batal</button>
+                        <button type="submit" id="vaultSubmitBtn" class="btn btn-primary" style="flex: 1;">Buka Brankas</button>
+                    </div>
+
+                    <div id="vaultResetLinkContainer" style="text-align: center; margin-top: 1rem;">
+                        <button type="button" id="vaultResetPwdBtn" style="background: none; border: none; color: var(--text-muted); font-size: 0.8125rem; text-decoration: underline; cursor: pointer; transition: color 0.2s;">
+                            <i class="fas fa-key"></i> Lupa / Reset PIN?
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     

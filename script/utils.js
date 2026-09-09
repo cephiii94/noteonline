@@ -135,3 +135,156 @@ export function linkifyHTML(html) {
     processTextNode(doc.body);
     return doc.body.innerHTML;
 }
+
+// --- POPUP ALERT, CONFIRM & TOAST SYSTEM ---
+
+export function showAlert(options) {
+    const opts = typeof options === 'string' ? { message: options } : (options || {});
+    const title = opts.title || 'Pemberitahuan';
+    const message = opts.message || '';
+    const type = opts.type || 'info';
+    const confirmText = opts.confirmText || 'OK';
+
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-alert-overlay';
+
+        const iconClass = type === 'danger' ? 'fa-exclamation-circle' :
+                          type === 'success' ? 'fa-check-circle' :
+                          type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+
+        overlay.innerHTML = `
+            <div class="custom-alert-card">
+                <div class="custom-alert-icon-wrapper ${type}">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <h3 class="custom-alert-title">${escapeHTML(title)}</h3>
+                <p class="custom-alert-message">${escapeHTML(message)}</p>
+                <div class="custom-alert-actions">
+                    <button class="custom-alert-btn custom-alert-btn-confirm ${type === 'danger' ? 'danger' : ''}" id="customAlertOkBtn">
+                        ${escapeHTML(confirmText)}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('is-visible'));
+
+        const okBtn = overlay.querySelector('#customAlertOkBtn');
+        const close = () => {
+            overlay.classList.remove('is-visible');
+            setTimeout(() => {
+                overlay.remove();
+                resolve(true);
+            }, 250);
+        };
+
+        if (okBtn) okBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') {
+                window.removeEventListener('keydown', handleKeyDown);
+                close();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+    });
+}
+
+export function showConfirm(options) {
+    const opts = typeof options === 'string' ? { message: options } : (options || {});
+    const title = opts.title || 'Konfirmasi';
+    const message = opts.message || '';
+    const type = opts.type || 'danger';
+    const confirmText = opts.confirmText || 'Hapus';
+    const cancelText = opts.cancelText || 'Batal';
+
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-alert-overlay';
+
+        const iconClass = type === 'danger' ? 'fa-trash-alt' :
+                          type === 'warning' ? 'fa-exclamation-triangle' : 'fa-question-circle';
+
+        overlay.innerHTML = `
+            <div class="custom-alert-card">
+                <div class="custom-alert-icon-wrapper ${type}">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <h3 class="custom-alert-title">${escapeHTML(title)}</h3>
+                <p class="custom-alert-message">${escapeHTML(message)}</p>
+                <div class="custom-alert-actions">
+                    <button class="custom-alert-btn custom-alert-btn-cancel" id="customConfirmCancelBtn">
+                        ${escapeHTML(cancelText)}
+                    </button>
+                    <button class="custom-alert-btn custom-alert-btn-confirm ${type === 'danger' ? 'danger' : ''}" id="customConfirmOkBtn">
+                        ${escapeHTML(confirmText)}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('is-visible'));
+
+        const okBtn = overlay.querySelector('#customConfirmOkBtn');
+        const cancelBtn = overlay.querySelector('#customConfirmCancelBtn');
+
+        const close = (result) => {
+            overlay.classList.remove('is-visible');
+            setTimeout(() => {
+                overlay.remove();
+                resolve(result);
+            }, 250);
+        };
+
+        if (okBtn) okBtn.addEventListener('click', () => close(true));
+        if (cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close(false);
+        });
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                window.removeEventListener('keydown', handleKeyDown);
+                close(false);
+            } else if (e.key === 'Enter') {
+                window.removeEventListener('keydown', handleKeyDown);
+                close(true);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+    });
+}
+
+export function showToast(message, type = 'info', duration = 3000) {
+    let container = document.querySelector('.custom-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'custom-toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `custom-toast ${type}`;
+
+    const iconClass = type === 'success' ? 'fa-check-circle' :
+                      type === 'danger' ? 'fa-exclamation-circle' :
+                      type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+
+    toast.innerHTML = `
+        <i class="fas ${iconClass} custom-toast-icon"></i>
+        <span>${escapeHTML(message)}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 250);
+    }, duration);
+}

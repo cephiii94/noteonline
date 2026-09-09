@@ -11,7 +11,10 @@ let allNotes = [];       // Menyimpan SEMUA data mentah dari Firebase
 let currentFilteredNotes = []; // Menyimpan data catatan yang sedang tampil di layar
 let currentViewNoteId = null;  // ID catatan yang sedang dibuka di modal
 let currentCategory = "All";
-let currentFilter = "all"; // 'all' (Utama) atau 'archived' (Arsip)
+let currentFilter = "all"; // 'all' (Utama), 'archived' (Arsip), atau 'vault' (Brankas)
+let isVaultUnlocked = false; // Status apakah Brankas terbuka di sesi ini
+let isSelectMode = false;
+let selectedNoteIds = new Set();
 
 // --- 1. SETUP AWAL (Si Bos Masuk Kantor) ---
 onAuthStateChanged(auth, (user) => {
@@ -50,16 +53,23 @@ function filterAndRender() {
     const searchValMobile = document.getElementById('mobileSearchInput') ? document.getElementById('mobileSearchInput').value.toLowerCase() : '';
     const searchQuery = searchValDesktop || searchValMobile;
 
-    // 2. FILTER (Memisahkan Aktif vs Arsip)
+    // 2. FILTER (Memisahkan Aktif vs Arsip vs Brankas)
     let filteredNotes = allNotes.filter(note => {
-        // PENTING: Catatan lama 'isArchived'-nya undefined. Kita anggap false (Aktif).
         const isNoteArchived = note.isArchived === true; 
+        const isNoteVault = note.isVault === true || note.category === 'Brankas';
 
-        // Logika Menu Arsip vs Menu Utama
-        if (currentFilter === 'archived') {
-            if (!isNoteArchived) return false; // Hanya tampilkan yang BENAR-BENAR arsip
+        if (currentFilter === 'vault') {
+            // Logika Menu Brankas: Hanya tampilkan catatan Brankas
+            if (!isNoteVault) return false;
+        } else if (currentFilter === 'archived') {
+            // Logika Menu Arsip: Sembunyikan catatan Brankas & Tampilkan hanya Arsip
+            if (isNoteVault) return false;
+            if (!isNoteArchived) return false;
         } else {
-            if (isNoteArchived) return false;  // Sembunyikan yang arsip
+            // Logika Menu Utama / Kategori: Sembunyikan catatan Brankas & Sembunyikan Arsip
+            if (isNoteVault) return false;
+            if (isNoteArchived) return false;
+
             // Filter Kategori (Hanya di menu utama)
             if (currentCategory !== 'All' && note.category !== currentCategory) return false;
         }
@@ -77,7 +87,7 @@ function filterAndRender() {
 
     // 3. SORTING (Urutkan Data - BAGIAN YANG DIPERBAIKI BRI)
     filteredNotes.sort((a, b) => {
-        // A. Prioritas Pin (Hanya di menu utama)
+        // A. Prioritas Pin (Hanya di menu utama & brankas)
         if (currentFilter !== 'archived') {
             const pinA = a.isPinned === true ? 1 : 0;
             const pinB = b.isPinned === true ? 1 : 0;
@@ -100,7 +110,66 @@ function filterAndRender() {
 
     // 4. Tampilkan ke Layar
     currentFilteredNotes = filteredNotes;
-    UI.renderNotesList(filteredNotes, currentFilter, 'notesList');
+    UI.renderNotesList(filteredNotes, currentFilter, 'notesList', isSelectMode, selectedNoteIds);
+    updateBulkActionBar();
+}
+
+function updateBulkActionBar() {
+    const bar = document.getElementById('bulkActionBar');
+    const selectModeBtn = document.getElementById('selectModeBtn');
+    const countBadge = document.getElementById('bulkSelectCount');
+    const selectAllText = document.getElementById('bulkSelectAllText');
+    const archiveText = document.getElementById('bulkArchiveText');
+    const notesListEl = document.getElementById('notesList');
+
+    if (selectModeBtn) {
+        if (isSelectMode) selectModeBtn.classList.add('active');
+        else selectModeBtn.classList.remove('active');
+    }
+
+    if (notesListEl) {
+        if (isSelectMode) notesListEl.classList.add('selection-mode');
+        else notesListEl.classList.remove('selection-mode');
+    }
+
+    if (bar) {
+        if (isSelectMode) {
+            bar.classList.remove('hidden');
+        } else {
+            bar.classList.add('hidden');
+        }
+    }
+
+    if (countBadge) {
+        countBadge.textContent = `${selectedNoteIds.size} dipilih`;
+    }
+
+    if (selectAllText) {
+        const allSelected = currentFilteredNotes.length > 0 && selectedNoteIds.size === currentFilteredNotes.length;
+        selectAllText.textContent = allSelected ? 'Batal Pilih Semua' : 'Pilih Semua';
+    }
+
+    if (archiveText) {
+        archiveText.textContent = currentFilter === 'archived' ? 'Kembalikan' : 'Arsip';
+    }
+
+    const vaultBtnLabel = document.querySelector('#bulkMoveToVaultBtn .btn-label');
+    const vaultBtnIcon = document.querySelector('#bulkMoveToVaultBtn i');
+    const bulkMoveToVaultBtn = document.getElementById('bulkMoveToVaultBtn');
+    if (vaultBtnLabel && vaultBtnIcon && bulkMoveToVaultBtn) {
+        if (currentFilter === 'vault') {
+            vaultBtnIcon.className = 'fas fa-lock-open';
+            vaultBtnLabel.textContent = 'Keluarkan';
+            bulkMoveToVaultBtn.title = 'Keluarkan dari Brankas';
+        } else {
+            vaultBtnIcon.className = 'fas fa-lock';
+            vaultBtnLabel.textContent = 'Brankas';
+            bulkMoveToVaultBtn.title = 'Pindah ke Brankas';
+        }
+    }
+
+    const catSelect = document.getElementById('bulkCategorySelect');
+    if (catSelect) catSelect.value = '';
 }
 
 
@@ -124,11 +193,38 @@ function initializeEventListeners() {
             UI.closeModal('viewModal');
         }
         
+        if (action === 'unvault') {
+            FirebaseService.updateNoteInFirestore(userId, id, {
+                isVault: false,
+                category: 'Personal'
+            });
+            UI.closeModal('viewModal');
+            Utils.showToast('Catatan berhasil dikeluarkan dari Brankas', 'success');
+        }
+
+        if (action === 'vault') {
+            FirebaseService.updateNoteInFirestore(userId, id, {
+                isVault: true,
+                category: 'Brankas'
+            });
+            UI.closeModal('viewModal');
+            Utils.showToast('Catatan berhasil dipindahkan ke Brankas', 'success');
+        }
+        
         if (action === 'delete') {
-            if(confirm('Hapus catatan ini selamanya?')) {
-                FirebaseService.deleteNoteFromFirestore(userId, id);
-                UI.closeModal('viewModal');
-            }
+            Utils.showConfirm({
+                title: 'Hapus Catatan',
+                message: 'Apakah Anda yakin ingin menghapus catatan ini selamanya?',
+                confirmText: 'Hapus',
+                cancelText: 'Batal',
+                type: 'danger'
+            }).then(confirmed => {
+                if (confirmed) {
+                    FirebaseService.deleteNoteFromFirestore(userId, id);
+                    UI.closeModal('viewModal');
+                    Utils.showToast('Catatan berhasil dihapus', 'success');
+                }
+            });
         }
         
         if (action === 'edit') {
@@ -174,6 +270,8 @@ function initializeEventListeners() {
             e.preventDefault();
             currentFilter = 'all';
             currentCategory = e.currentTarget.dataset.category;
+            isSelectMode = false;
+            selectedNoteIds.clear();
             
             // Update Teks Header
             const headerEl = document.getElementById('notesHeader');
@@ -196,6 +294,8 @@ function initializeEventListeners() {
             e.preventDefault();
             currentFilter = 'archived';
             currentCategory = 'All';
+            isSelectMode = false;
+            selectedNoteIds.clear();
 
             const headerEl = document.getElementById('notesHeader');
             if(headerEl) headerEl.textContent = 'Arsip Catatan';
@@ -207,6 +307,333 @@ function initializeEventListeners() {
             if (window.innerWidth < 768) Utils.closeSidebar();
         });
     }
+
+    // --- Logika Selection Mode & Bulk Actions ---
+    Utils.safeAddListener('selectModeBtn', 'click', () => {
+        isSelectMode = !isSelectMode;
+        if (!isSelectMode) {
+            selectedNoteIds.clear();
+        }
+        filterAndRender();
+    });
+
+    Utils.safeAddListener('bulkSelectAllBtn', 'click', () => {
+        const allSelected = currentFilteredNotes.length > 0 && selectedNoteIds.size === currentFilteredNotes.length;
+        if (allSelected) {
+            selectedNoteIds.clear();
+        } else {
+            currentFilteredNotes.forEach(n => selectedNoteIds.add(n.id));
+        }
+        filterAndRender();
+    });
+
+    Utils.safeAddListener('bulkCancelBtn', 'click', () => {
+        isSelectMode = false;
+        selectedNoteIds.clear();
+        filterAndRender();
+    });
+
+    const bulkCategorySelect = document.getElementById('bulkCategorySelect');
+    if (bulkCategorySelect) {
+        bulkCategorySelect.addEventListener('change', async (e) => {
+            const newCat = e.target.value;
+            if (!newCat || selectedNoteIds.size === 0) return;
+
+            const count = selectedNoteIds.size;
+            const isVault = newCat === 'Brankas';
+
+            for (const id of selectedNoteIds) {
+                try {
+                    await FirebaseService.updateNoteInFirestore(userId, id, {
+                        category: newCat,
+                        isVault: isVault
+                    });
+                } catch (err) {
+                    console.error("Gagal update kategori bulk:", err);
+                }
+            }
+
+            Utils.showToast(`${count} catatan dipindahkan ke kategori "${newCat}"`, 'success');
+            selectedNoteIds.clear();
+            isSelectMode = false;
+            filterAndRender();
+        });
+    }
+
+    Utils.safeAddListener('bulkMoveToVaultBtn', 'click', async () => {
+        if (selectedNoteIds.size === 0) {
+            return Utils.showToast('Pilih setidaknya satu catatan terlebih dahulu', 'warning');
+        }
+
+        const count = selectedNoteIds.size;
+        const isRemovingFromVault = currentFilter === 'vault';
+
+        for (const id of selectedNoteIds) {
+            try {
+                if (isRemovingFromVault) {
+                    await FirebaseService.updateNoteInFirestore(userId, id, {
+                        category: 'Personal',
+                        isVault: false
+                    });
+                } else {
+                    await FirebaseService.updateNoteInFirestore(userId, id, {
+                        category: 'Brankas',
+                        isVault: true
+                    });
+                }
+            } catch (err) {
+                console.error("Gagal update vault bulk:", err);
+            }
+        }
+
+        Utils.showToast(`${count} catatan ${isRemovingFromVault ? 'dikeluarkan dari Brankas' : 'dipindahkan ke Brankas'}!`, 'success');
+        selectedNoteIds.clear();
+        isSelectMode = false;
+        filterAndRender();
+    });
+
+    Utils.safeAddListener('bulkArchiveBtn', 'click', async () => {
+        if (selectedNoteIds.size === 0) {
+            return Utils.showToast('Pilih setidaknya satu catatan terlebih dahulu', 'warning');
+        }
+
+        const count = selectedNoteIds.size;
+        const targetArchiveStatus = currentFilter !== 'archived';
+
+        for (const id of selectedNoteIds) {
+            try {
+                await FirebaseService.setArchiveStatus(userId, id, targetArchiveStatus);
+            } catch (err) {
+                console.error("Gagal arsip bulk:", err);
+            }
+        }
+
+        Utils.showToast(`${count} catatan ${targetArchiveStatus ? 'diarsipkan' : 'dikembalikan'}`, 'success');
+        selectedNoteIds.clear();
+        isSelectMode = false;
+        filterAndRender();
+    });
+
+    Utils.safeAddListener('bulkDeleteBtn', 'click', () => {
+        if (selectedNoteIds.size === 0) {
+            return Utils.showToast('Pilih setidaknya satu catatan terlebih dahulu', 'warning');
+        }
+
+        const count = selectedNoteIds.size;
+        Utils.showConfirm({
+            title: 'Hapus Catatan Terpilih',
+            message: `Apakah Anda yakin ingin menghapus ${count} catatan yang dipilih secara permanen?`,
+            confirmText: 'Hapus All',
+            cancelText: 'Batal',
+            type: 'danger'
+        }).then(async (confirmed) => {
+            if (confirmed) {
+                for (const id of selectedNoteIds) {
+                    try {
+                        await FirebaseService.deleteNoteFromFirestore(userId, id);
+                    } catch (err) {
+                        console.error("Gagal hapus bulk:", err);
+                    }
+                }
+
+                Utils.showToast(`${count} catatan berhasil dihapus`, 'success');
+                selectedNoteIds.clear();
+                isSelectMode = false;
+                filterAndRender();
+            }
+        });
+    });
+
+    // --- Logika Menu Brankas (Vault) ---
+    let vaultMode = 'enter'; // 'enter' atau 'create'
+
+    // Filter otomatis input PIN hanya menerima angka
+    ['vaultInputPassword', 'vaultNewPassword', 'vaultConfirmPassword'].forEach(id => {
+        const inputEl = document.getElementById(id);
+        if (inputEl) {
+            inputEl.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+        }
+    });
+
+    const openVaultModal = (mode) => {
+        vaultMode = mode;
+        const modalTitle = document.getElementById('vaultModalTitle');
+        const modalSubtitle = document.getElementById('vaultModalSubtitle');
+        const enterGroup = document.getElementById('vaultEnterPwdGroup');
+        const createGroup = document.getElementById('vaultCreatePwdGroup');
+        const resetContainer = document.getElementById('vaultResetLinkContainer');
+        const submitBtn = document.getElementById('vaultSubmitBtn');
+        const errorEl = document.getElementById('vaultPasswordError');
+
+        if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+        const inputPwd = document.getElementById('vaultInputPassword');
+        const newPwd = document.getElementById('vaultNewPassword');
+        const confirmPwd = document.getElementById('vaultConfirmPassword');
+        if (inputPwd) inputPwd.value = '';
+        if (newPwd) newPwd.value = '';
+        if (confirmPwd) confirmPwd.value = '';
+
+        if (mode === 'create') {
+            if (modalTitle) modalTitle.textContent = 'Buat PIN Brankas';
+            if (modalSubtitle) modalSubtitle.textContent = 'Silakan buat PIN angka baru (min. 4 angka) untuk mengamankan catatan rahasia.';
+            if (enterGroup) enterGroup.classList.add('hidden');
+            if (createGroup) createGroup.classList.remove('hidden');
+            if (resetContainer) resetContainer.classList.add('hidden');
+            if (submitBtn) submitBtn.textContent = 'Simpan PIN & Buka';
+        } else {
+            if (modalTitle) modalTitle.textContent = 'Masukkan PIN Brankas';
+            if (modalSubtitle) modalSubtitle.textContent = 'Masukkan PIN angka untuk membuka catatan rahasia.';
+            if (enterGroup) enterGroup.classList.remove('hidden');
+            if (createGroup) createGroup.classList.add('hidden');
+            if (resetContainer) resetContainer.classList.remove('hidden');
+            if (submitBtn) submitBtn.textContent = 'Buka Brankas';
+        }
+
+        UI.openModal('vaultPasswordModal');
+
+        // Otomatis fokus ke input password & aktifkan keyboard HP
+        setTimeout(() => {
+            const targetInput = mode === 'create' ? newPwd : inputPwd;
+            if (targetInput) {
+                targetInput.focus();
+                if (typeof targetInput.select === 'function' && targetInput.value) {
+                    targetInput.select();
+                }
+            }
+        }, 150);
+    };
+
+    const activateVaultView = () => {
+        currentFilter = 'vault';
+        currentCategory = 'All';
+        isSelectMode = false;
+        selectedNoteIds.clear();
+
+        const headerEl = document.getElementById('notesHeader');
+        if (headerEl) headerEl.textContent = '🔒 Brankas Catatan';
+
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active-link'));
+        const vaultBtn = document.getElementById('vaultFilterBtn');
+        if (vaultBtn) vaultBtn.classList.add('active-link');
+
+        filterAndRender();
+        if (window.innerWidth < 768) Utils.closeSidebar();
+    };
+
+    // Filter Brankas Klik Listener
+    const vaultBtn = document.getElementById('vaultFilterBtn');
+    if (vaultBtn) {
+        vaultBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (isVaultUnlocked) {
+                activateVaultView();
+            } else {
+                const savedPwd = localStorage.getItem('vault_pwd_' + userId);
+                if (!savedPwd) {
+                    openVaultModal('create');
+                } else {
+                    openVaultModal('enter');
+                }
+            }
+        });
+    }
+
+    // Tombol Batal Modal Vault
+    Utils.safeAddListener('vaultCancelBtn', 'click', () => {
+        UI.closeModal('vaultPasswordModal');
+    });
+
+    // Form Submit Password Brankas
+    const vaultForm = document.getElementById('vaultPasswordForm');
+    if (vaultForm) {
+        vaultForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const errorEl = document.getElementById('vaultPasswordError');
+            const showError = (msg) => {
+                if (errorEl) {
+                    errorEl.textContent = msg;
+                    errorEl.style.display = 'block';
+                }
+            };
+
+            if (vaultMode === 'create') {
+                const newPwdVal = document.getElementById('vaultNewPassword').value.trim();
+                const confirmPwdVal = document.getElementById('vaultConfirmPassword').value.trim();
+
+                if (!newPwdVal || !/^\d+$/.test(newPwdVal) || newPwdVal.length < 4) {
+                    return showError('PIN harus berupa angka (minimal 4 angka)!');
+                }
+                if (newPwdVal !== confirmPwdVal) {
+                    return showError('Konfirmasi PIN tidak cocok!');
+                }
+
+                localStorage.setItem('vault_pwd_' + userId, newPwdVal);
+                isVaultUnlocked = true;
+                UI.closeModal('vaultPasswordModal');
+                activateVaultView();
+                Utils.showToast('PIN Brankas berhasil dibuat!', 'success');
+            } else {
+                const inputPwdVal = document.getElementById('vaultInputPassword').value.trim();
+                const savedPwdVal = localStorage.getItem('vault_pwd_' + userId);
+
+                if (inputPwdVal === savedPwdVal) {
+                    isVaultUnlocked = true;
+                    UI.closeModal('vaultPasswordModal');
+                    activateVaultView();
+                    Utils.showToast('Brankas terbuka', 'success');
+                } else {
+                    showError('PIN salah! Silakan coba lagi.');
+                }
+            }
+        });
+    }
+
+    // Reset Password Listener (dengan WARNING Hapus Data)
+    const resetPwdBtn = document.getElementById('vaultResetPwdBtn');
+    if (resetPwdBtn) {
+        resetPwdBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            UI.closeModal('vaultPasswordModal');
+
+            Utils.showConfirm({
+                title: '⚠️ RESET PIN BRANKAS',
+                message: 'PERINGATAN! Mereset PIN akan MENGHAPUS SEMUA CATATAN di dalam Brankas secara permanen dan tidak dapat dikembalikan.\n\nApakah Anda yakin ingin mereset PIN dan menghapus semua catatan Brankas?',
+                confirmText: 'Ya, Hapus Semua & Reset',
+                cancelText: 'Batal',
+                type: 'danger'
+            }).then(async (confirmed) => {
+                if (confirmed) {
+                    // Hapus semua catatan di Brankas dari Firestore
+                    const vaultNotes = allNotes.filter(n => n.isVault === true || n.category === 'Brankas');
+                    for (const note of vaultNotes) {
+                        try {
+                            await FirebaseService.deleteNoteFromFirestore(userId, note.id);
+                        } catch (err) {
+                            console.error("Gagal hapus vault note:", err);
+                        }
+                    }
+
+                    localStorage.removeItem('vault_pwd_' + userId);
+                    isVaultUnlocked = false;
+
+                    Utils.showToast('PIN direset & catatan Brankas telah dihapus.', 'warning');
+                    
+                    setTimeout(() => {
+                        openVaultModal('create');
+                    }, 500);
+                }
+            });
+        });
+    }
+
+    // Kunci Brankas Otomatis saat pindah ke menu lain
+    document.querySelectorAll('.category-filter, .archive-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            isVaultUnlocked = false;
+        });
+    });
 
     // --- Modal Controls ---
     Utils.safeAddListener('openAddModalBtnMobile', 'click', () => { UI.resetAddEditor(); UI.openModal('addModal'); });
@@ -352,23 +779,52 @@ function initializeEventListeners() {
         }
     });
 
-    // --- Delegasi Tombol Aksi (List Utama) ---
+    // --- Delegasi Event Klik pada Notes List (Selection Mode & Individual Actions) ---
     const listContainer = document.getElementById('notesList');
-    if(listContainer) {
+    if (listContainer) {
         listContainer.addEventListener('click', (e) => {
-            const btn = e.target.closest('.note-action-btn');
             const card = e.target.closest('.note-card');
-            
-            if(btn) {
+            if (!card) return;
+            const noteId = card.dataset.id;
+            if (!noteId) return;
+
+            const btn = e.target.closest('.note-action-btn');
+            const isCheckbox = e.target.classList.contains('note-card-checkbox') || e.target.closest('.note-card-checkbox-container');
+
+            // A. Jika sedang dalam Selection Mode ATAU mengklik Checkbox:
+            if (isSelectMode || isCheckbox) {
+                e.stopPropagation();
+                e.preventDefault();
+
+                if (selectedNoteIds.has(noteId)) {
+                    selectedNoteIds.delete(noteId);
+                } else {
+                    selectedNoteIds.add(noteId);
+                }
+
+                // Otomatis aktifkan select mode saat checkbox dicentang pertama kali
+                if (selectedNoteIds.size > 0 && !isSelectMode) {
+                    isSelectMode = true;
+                }
+
+                filterAndRender();
+                return;
+            }
+
+            // B. Jika dalam Mode Normal (Bukan Selection Mode):
+            if (btn) {
                 e.stopPropagation();
                 const id = btn.dataset.id;
-                if(btn.classList.contains('pin-btn')) handleNoteAction('pin', id);
-                if(btn.classList.contains('archive-btn')) handleNoteAction('archive', id);
-                if(btn.classList.contains('unarchive-btn')) handleNoteAction('unarchive', id);
-                if(btn.classList.contains('delete-btn')) handleNoteAction('delete', id);
-                if(btn.classList.contains('edit-btn')) handleNoteAction('edit', id);
-            } else if (card) {
-                handleNoteAction('view', card.dataset.id);
+                if (btn.classList.contains('pin-btn')) handleNoteAction('pin', id);
+                if (btn.classList.contains('archive-btn')) handleNoteAction('archive', id);
+                if (btn.classList.contains('unarchive-btn')) handleNoteAction('unarchive', id);
+                if (btn.classList.contains('vault-btn')) handleNoteAction('vault', id);
+                if (btn.classList.contains('unvault-btn')) handleNoteAction('unvault', id);
+                if (btn.classList.contains('delete-btn')) handleNoteAction('delete', id);
+                if (btn.classList.contains('edit-btn')) handleNoteAction('edit', id);
+            } else {
+                // Klik pada card dalam mode biasa -> Buka modal view
+                handleNoteAction('view', noteId);
             }
         });
     }
@@ -378,7 +834,9 @@ function initializeEventListeners() {
         'viewHeaderEditBtn', 'viewMenuEdit', 'viewFooterEditBtn', 'editFab',
         'viewHeaderDeleteBtn', 'viewMenuDelete', 'viewFooterDeleteBtn',
         'viewHeaderArchiveBtn', 'viewMenuArchive', 'viewFooterArchiveBtn',
-        'viewHeaderUnarchiveBtn', 'viewMenuUnarchive', 'viewFooterUnarchiveBtn'
+        'viewHeaderUnarchiveBtn', 'viewMenuUnarchive', 'viewFooterUnarchiveBtn',
+        'viewHeaderVaultBtn', 'viewMenuVault', 'viewFooterVaultBtn',
+        'viewHeaderUnvaultBtn', 'viewMenuUnvault', 'viewFooterUnvaultBtn'
     ];
     actionIds.forEach(id => {
         const btn = document.getElementById(id);
@@ -390,6 +848,8 @@ function initializeEventListeners() {
                 if(id.includes('Delete')) handleNoteAction('delete', noteId);
                 if(id.includes('Archive') && !id.includes('Unarchive')) handleNoteAction('archive', noteId);
                 if(id.includes('Unarchive')) handleNoteAction('unarchive', noteId);
+                if(id.includes('Vault') && !id.includes('Unvault')) handleNoteAction('vault', noteId);
+                if(id.includes('Unvault')) handleNoteAction('unvault', noteId);
             });
         }
     });
@@ -422,6 +882,8 @@ function initializeEventListeners() {
             e.target.reset(); 
             if (typeof UI.resetAddEditor === 'function') UI.resetAddEditor();
 
+            const isVault = categoryVal === 'Brankas' || currentFilter === 'vault';
+
             // D. KIRIM DATA DARI VARIABEL (Bukan document.getElementById lagi)
             FirebaseService.addNoteToFirestore(userId, {
                 title: titleVal,       // Pakai variabel
@@ -429,12 +891,20 @@ function initializeEventListeners() {
                 productLink: linkVal,  // Pakai variabel
                 content: editorContent.html,
                 plainText: editorContent.text,
-                tags: tags
+                tags: tags,
+                isVault: isVault
             })
-            .then(() => console.log("✅ Sukses tersimpan"))
+            .then(() => {
+                console.log("✅ Sukses tersimpan");
+                Utils.showToast("Catatan berhasil disimpan!", "success");
+            })
             .catch(err => {
                 console.error("❌ Gagal simpan:", err);
-                alert("Gagal menyimpan: " + err.message);
+                Utils.showAlert({
+                    title: 'Gagal Menyimpan',
+                    message: err.message,
+                    type: 'danger'
+                });
             })
             .finally(() => {
                 // E. KEMBALIKAN TOMBOL
@@ -476,18 +946,28 @@ function initializeEventListeners() {
 
             UI.closeModal('editModal');
 
+            const isVault = categoryVal === 'Brankas' || currentFilter === 'vault';
+
             FirebaseService.updateNoteInFirestore(userId, noteId, {
                 title: titleVal,
                 category: categoryVal,
                 productLink: linkVal,
                 content: editorContent.html,
                 plainText: editorContent.text,
-                tags: tags
+                tags: tags,
+                isVault: isVault
             })
-            .then(() => console.log("✅ Update sukses"))
+            .then(() => {
+                console.log("✅ Update sukses");
+                Utils.showToast("Catatan berhasil diperbarui!", "success");
+            })
             .catch(err => {
                 console.error("❌ Gagal update:", err);
-                alert("Gagal update: " + err.message);
+                Utils.showAlert({
+                    title: 'Gagal Update',
+                    message: err.message,
+                    type: 'danger'
+                });
             })
             .finally(() => {
                 if(submitBtn) {

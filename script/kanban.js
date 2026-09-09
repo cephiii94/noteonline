@@ -159,7 +159,18 @@ function render(){
         delBtn.className = 'icon-btn danger';
         delBtn.innerHTML = '<i class="fas fa-trash"></i>';
         delBtn.addEventListener('click', () => {
-            if(confirm('Hapus tugas ini?')) deleteDoc(doc(db, kanbanCollectionRef.path, task.id));
+            Utils.showConfirm({
+                title: 'Hapus Tugas',
+                message: 'Apakah Anda yakin ingin menghapus tugas ini?',
+                confirmText: 'Hapus',
+                cancelText: 'Batal',
+                type: 'danger'
+            }).then(confirmed => {
+                if (confirmed) {
+                    deleteDoc(doc(db, kanbanCollectionRef.path, task.id));
+                    Utils.showToast('Tugas berhasil dihapus', 'success');
+                }
+            });
         });
         actions.appendChild(delBtn);
 
@@ -307,9 +318,15 @@ if(els.importFile) {
                 const arr = JSON.parse(String(reader.result));
                 if (Array.isArray(arr) && isAuthReady) {
                     arr.forEach(({id, ...data}) => addDoc(kanbanCollectionRef, data));
-                    alert('Import Berhasil!');
+                    Utils.showToast('Import Berhasil!', 'success');
                 }
-            } catch(e) { alert('Gagal Import'); }
+            } catch(e) { 
+                Utils.showAlert({
+                    title: 'Gagal Import',
+                    message: 'Format file JSON tidak valid.',
+                    type: 'danger'
+                });
+            }
         };
         reader.readAsText(f);
     });
