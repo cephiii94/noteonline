@@ -563,6 +563,18 @@ select option {
 .modal-icon-btn:hover, .modal-close-btn:hover {
     color: var(--text-main); background-color: var(--bg-hover);
 }
+#closeView {
+    display: flex !important;
+    font-size: 1.15rem;
+    cursor: pointer;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+}
+#closeView:hover {
+    color: var(--text-title);
+    background-color: var(--bg-hover);
+    transform: scale(1.08);
+}
 #viewHeaderDeleteBtn:hover { color: var(--danger); background-color: var(--danger-bg); }
 
 /* Tombol Arsip di Modal */
@@ -1020,6 +1032,8 @@ body.dark-mode .ql-snow .ql-picker-label { color: var(--text-muted); }
     #viewHeaderDeleteBtn,
     #viewHeaderArchiveBtn,
     #viewHeaderUnarchiveBtn,
+    #viewHeaderVaultBtn,
+    #viewHeaderUnvaultBtn,
     #editFab { /* Sembunyikan juga tombol melayang (FAB) */
         display: none !important;
     }
@@ -1124,7 +1138,9 @@ body.dark-mode .ql-snow .ql-picker-label { color: var(--text-muted); }
     .desktop-only-flex { display: none; }
 
     #viewHeaderArchiveBtn, 
-    #viewHeaderUnarchiveBtn {
+    #viewHeaderUnarchiveBtn,
+    #viewHeaderVaultBtn,
+    #viewHeaderUnvaultBtn {
         display: none !important;
     }
 }
