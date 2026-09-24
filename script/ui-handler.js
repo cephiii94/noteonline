@@ -1,5 +1,5 @@
 // script/ui-handler.js
-import { formatDate, escapeHTML, linkifyHTML } from './utils.js';
+import { formatDate, escapeHTML, linkifyHTML, getChecklistStats } from './utils.js';
 
 let addEditor, editEditor; // Instance Quill
 
@@ -9,13 +9,13 @@ export function initializeEditors() {
         [{ 'header': [1, 2, false] }],
         ['bold', 'italic', 'underline', 'strike'],
         ['blockquote', 'code-block'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet'}, { 'list': 'check' }],
         ['clean']
     ];
 
     if(document.getElementById('addEditorContainer')) {
         addEditor = new Quill('#addEditorContainer', {
-            theme: 'snow', placeholder: 'Tulis catatanmu...', modules: { toolbar: toolbarOptions }
+            theme: 'snow', placeholder: 'Tulis catatan atau daftar tugasmu...', modules: { toolbar: toolbarOptions }
         });
         const toolbarEl = document.querySelector('#addModal .ql-toolbar');
         const targetContainer = document.getElementById('addToolbarContainer');
@@ -35,6 +35,26 @@ export function initializeEditors() {
     }
 }
 
+export function setEditorChecklistMode(type, isChecklist) {
+    const editor = type === 'add' ? addEditor : editEditor;
+    if (!editor) return;
+
+    if (isChecklist) {
+        const text = editor.getText().trim();
+        if (!text) {
+            editor.setText('');
+            editor.format('list', 'check');
+            editor.focus();
+        } else {
+            editor.formatText(0, editor.getLength(), 'list', 'check');
+            editor.focus();
+        }
+    } else {
+        editor.formatText(0, editor.getLength(), 'list', false);
+        editor.focus();
+    }
+}
+
 export function getEditorContent(type) {
     if (type === 'add') return { html: addEditor.root.innerHTML, text: addEditor.getText() };
     if (type === 'edit') return { html: editEditor.root.innerHTML, text: editEditor.getText() };
@@ -43,6 +63,16 @@ export function getEditorContent(type) {
 export function resetAddEditor() {
     if(addEditor) addEditor.setText('');
     
+    // Reset toggle mode catatan
+    const textBtn = document.getElementById('addTypeTextBtn');
+    const checklistBtn = document.getElementById('addTypeChecklistBtn');
+    const hint = document.getElementById('addTypeHint');
+    if (textBtn && checklistBtn) {
+        textBtn.classList.add('active');
+        checklistBtn.classList.remove('active');
+        if (hint) hint.textContent = 'Tulis bebas dengan format teks';
+    }
+
     // --- TAMBAHAN BRI: Reset Tombol Simpan ---
     // Pastikan tombol aktif kembali saat mau nulis baru
     const btn = document.querySelector('#addNoteForm button[type="submit"]');
@@ -120,6 +150,38 @@ export function renderNotesList(notes, currentFilter, containerId, isSelectionMo
         const selectedClass = isSelected ? 'is-selected' : '';
         const checkboxVisibleClass = isSelectionMode ? 'is-visible' : '';
 
+        // Deteksi apakah catatan memiliki format checklist
+        const checklistStats = getChecklistStats(note.content);
+        const hasChecklist = checklistStats.total > 0;
+        const isChecklistComplete = hasChecklist && checklistStats.checked === checklistStats.total;
+
+        const checklistBadgeHTML = hasChecklist
+            ? `<span class="note-card-checklist-badge ${isChecklistComplete ? 'is-completed' : ''}" title="${checklistStats.checked} dari ${checklistStats.total} tugas selesai">
+                 <i class="${isChecklistComplete ? 'fas fa-check-circle' : 'fas fa-tasks'}"></i>
+                 <span>${checklistStats.checked}/${checklistStats.total}</span>
+               </span>`
+            : '';
+
+        let contentBodyHTML = '';
+        if (hasChecklist) {
+            contentBodyHTML = `
+                <div class="note-card-checklist-preview">
+                    ${checklistStats.items.slice(0, 3).map(it => `
+                        <div class="card-checklist-row ${it.checked ? 'is-checked' : ''}">
+                            <i class="${it.checked ? 'fas fa-check-square' : 'far fa-square'}"></i>
+                            <span class="card-checklist-text">${escapeHTML(it.text)}</span>
+                        </div>
+                    `).join('')}
+                    ${checklistStats.total > 3 ? `<div class="card-checklist-more">+${checklistStats.total - 3} item lagi...</div>` : ''}
+                </div>
+                <div class="card-checklist-progress-bar">
+                    <div class="card-checklist-progress-fill ${isChecklistComplete ? 'is-complete' : ''}" style="width: ${checklistStats.percent}%"></div>
+                </div>
+            `;
+        } else {
+            contentBodyHTML = `<div class="note-card-content">${note.plainText ? escapeHTML(note.plainText.substring(0, 150)) : ''}...</div>`;
+        }
+
         const cardHTML = `
             <div class="note-card ${pinnedClass} ${selectedClass}" data-id="${note.id}">
                 <div class="note-card-header">
@@ -128,12 +190,13 @@ export function renderNotesList(notes, currentFilter, containerId, isSelectionMo
                             <input type="checkbox" class="note-card-checkbox" data-id="${note.id}" ${isSelected ? 'checked' : ''}>
                         </div>
                         <span class="note-card-category">${escapeHTML(note.category)}</span>
+                        ${checklistBadgeHTML}
                     </div>
                     <span class="note-card-date">${dateStr}</span>
                 </div>
                 <div class="note-card-body">
                     <h3 class="note-card-title">${escapeHTML(note.title)}</h3>
-                    <div class="note-card-content">${note.plainText ? escapeHTML(note.plainText.substring(0, 150)) : ''}...</div>
+                    ${contentBodyHTML}
                 </div>
                 <div class="note-card-footer">
                     ${tagsHTML}
@@ -174,13 +237,72 @@ export function closeModal(modalId) {
     }
 }
 
-export function showViewModal(note) {
+export function showViewModal(note, onChecklistToggle = null) {
     const viewModal = document.getElementById('viewModal');
     
     // Set Content (Smart Read Links)
     document.getElementById('viewNoteTitle').textContent = note.title;
     document.getElementById('viewNoteCategory').textContent = note.category;
-    document.getElementById('viewNoteContent').innerHTML = linkifyHTML(note.content);
+    
+    const viewContentEl = document.getElementById('viewNoteContent');
+    viewContentEl.innerHTML = linkifyHTML(note.content);
+
+    // Checklist Progress Box
+    const checklistBox = document.getElementById('viewChecklistContainer');
+    const checklistCountEl = document.getElementById('viewChecklistCount');
+    const checklistFillEl = document.getElementById('viewChecklistFill');
+
+    const updateChecklistUI = (stats) => {
+        if (!checklistBox) return;
+        if (stats.total > 0) {
+            checklistBox.classList.remove('hidden');
+            if (checklistCountEl) {
+                checklistCountEl.textContent = `${stats.checked}/${stats.total} Selesai (${stats.percent}%)`;
+            }
+            if (checklistFillEl) {
+                checklistFillEl.style.width = `${stats.percent}%`;
+                if (stats.checked === stats.total) {
+                    checklistFillEl.classList.add('is-complete');
+                } else {
+                    checklistFillEl.classList.remove('is-complete');
+                }
+            }
+        } else {
+            checklistBox.classList.add('hidden');
+        }
+    };
+
+    let initialStats = getChecklistStats(note.content);
+    updateChecklistUI(initialStats);
+
+    // Handler klik interaktif untuk item checklist di modal baca
+    viewContentEl.onclick = (e) => {
+        const li = e.target.closest('li[data-list="checked"], li[data-list="unchecked"]');
+        if (!li) return;
+
+        // Toggle status centang
+        const currentListType = li.getAttribute('data-list');
+        const nextListType = currentListType === 'checked' ? 'unchecked' : 'checked';
+        li.setAttribute('data-list', nextListType);
+
+        // Update parent ul jika ada
+        const parentUl = li.closest('ul[data-checked]');
+        if (parentUl) {
+            parentUl.setAttribute('data-checked', nextListType === 'checked' ? 'true' : 'false');
+        }
+
+        const newHTML = viewContentEl.innerHTML;
+        const newPlainText = viewContentEl.innerText;
+        note.content = newHTML;
+        note.plainText = newPlainText;
+
+        const updatedStats = getChecklistStats(newHTML);
+        updateChecklistUI(updatedStats);
+
+        if (typeof onChecklistToggle === 'function') {
+            onChecklistToggle(note, newHTML, newPlainText);
+        }
+    };
     
     // Set Date
     let safeDate;
@@ -266,6 +388,24 @@ export function fillEditForm(note) {
     document.getElementById('editNoteTags').value = note.tags ? note.tags.join(', ') : '';
     document.getElementById('editNoteLink').value = note.productLink || '';
     setEditEditorContent(note.content);
+
+    // Sync switch mode catatan
+    const stats = getChecklistStats(note.content);
+    const isChecklist = stats.total > 0;
+    const textBtn = document.getElementById('editTypeTextBtn');
+    const checklistBtn = document.getElementById('editTypeChecklistBtn');
+    const hint = document.getElementById('editTypeHint');
+    if (textBtn && checklistBtn) {
+        if (isChecklist) {
+            textBtn.classList.remove('active');
+            checklistBtn.classList.add('active');
+            if (hint) hint.textContent = 'Mode Checklist: Setiap baris adalah item tugas centang';
+        } else {
+            textBtn.classList.add('active');
+            checklistBtn.classList.remove('active');
+            if (hint) hint.textContent = 'Tulis bebas dengan format teks';
+        }
+    }
 
     // --- TAMBAHAN BRI: Reset Tombol Update (PINDAHKAN KE SINI) ---
     // Pastikan tombol aktif kembali saat mau edit

@@ -292,4 +292,41 @@ export function showToast(message, type = 'info', duration = 3000) {
         toast.classList.add('toast-hiding');
         setTimeout(() => toast.remove(), 250);
     }, duration);
+}
+
+// Helper: Hitung statistik checklist dari konten HTML catatan
+export function getChecklistStats(content) {
+    if (!content) return { total: 0, checked: 0, percent: 0, items: [] };
+
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        
+        // Cari semua li dengan data-list='checked' atau 'unchecked' (format Quill)
+        const listItems = doc.querySelectorAll('li[data-list="checked"], li[data-list="unchecked"]');
+        if (listItems.length === 0) {
+            return { total: 0, checked: 0, percent: 0, items: [] };
+        }
+
+        const items = [];
+        let checkedCount = 0;
+        listItems.forEach(li => {
+            const isChecked = li.getAttribute('data-list') === 'checked';
+            if (isChecked) checkedCount++;
+            
+            // Ambil teks bersih dari elemen li
+            const clone = li.cloneNode(true);
+            clone.querySelectorAll('.ql-ui').forEach(el => el.remove());
+            const text = clone.textContent.trim();
+            items.push({ text, checked: isChecked });
+        });
+
+        const total = listItems.length;
+        const percent = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+
+        return { total, checked: checkedCount, percent, items };
+    } catch (e) {
+        console.error("Error parsing checklist stats:", e);
+        return { total: 0, checked: 0, percent: 0, items: [] };
+    }
 }

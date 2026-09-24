@@ -1734,4 +1734,320 @@ body.dark-mode .note-card.is-selected {
     opacity: 1;
     transform: scale(1);
 }
+
+/* =========================================
+   11. CHECKLIST MODE & PROGRESS BAR STYLES
+   ========================================= */
+
+/* Mode Switcher Buttons (Add & Edit Modal) */
+.note-type-toggle-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.25rem;
+}
+
+.note-type-toggle {
+    display: inline-flex;
+    background-color: var(--input-bg);
+    border-radius: 0.625rem;
+    padding: 0.25rem;
+    gap: 0.25rem;
+    border: 1px solid var(--border-color);
+    width: fit-content;
+}
+
+.type-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.type-toggle-btn:hover {
+    color: var(--text-main);
+}
+
+.type-toggle-btn.active {
+    background-color: var(--bg-surface);
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .type-toggle-btn.active {
+    background-color: var(--bg-surface);
+    color: #60a5fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.note-type-hint {
+    font-size: 0.775rem;
+    color: var(--text-light);
+    font-style: italic;
+    padding-left: 0.25rem;
+}
+
+/* Checklist Badge pada Kartu Catatan */
+.note-card-checklist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    margin-left: 0.4rem;
+}
+
+.note-card-checklist-badge.is-completed {
+    background-color: var(--success-bg);
+    color: var(--success);
+    border-color: rgba(21, 128, 61, 0.2);
+}
+
+body.dark-mode .note-card-checklist-badge {
+    background-color: rgba(96, 165, 250, 0.15);
+    color: #93c5fd;
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+body.dark-mode .note-card-checklist-badge.is-completed {
+    background-color: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Checklist Preview di Dalam Kartu */
+.note-card-checklist-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.6rem;
+}
+
+.card-checklist-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.card-checklist-row i {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    flex-shrink: 0;
+}
+
+.card-checklist-row.is-checked i {
+    color: var(--primary);
+}
+
+.card-checklist-row.is-checked .card-checklist-text {
+    text-decoration: line-through;
+    color: var(--text-light);
+    opacity: 0.75;
+}
+
+.card-checklist-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.card-checklist-more {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-style: italic;
+    margin-top: 0.15rem;
+}
+
+.card-checklist-progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: var(--bg-hover);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 0.35rem;
+}
+
+.card-checklist-progress-fill {
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+}
+
+.card-checklist-progress-fill.is-complete {
+    background-color: var(--success);
+}
+
+/* View Modal: Checklist Progress Box */
+.view-checklist-progress-box {
+    background-color: var(--bg-hover);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.85rem 1.15rem;
+    margin-bottom: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.checklist-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.checklist-progress-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-title);
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.checklist-progress-label i {
+    color: var(--primary);
+}
+
+.checklist-progress-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.checklist-progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+body.dark-mode .checklist-progress-bar {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.checklist-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563EB, #3b82f6);
+    border-radius: 999px;
+    transition: width 0.35s ease;
+}
+
+.checklist-progress-fill.is-complete {
+    background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.checklist-tip {
+    margin-top: 0.5rem;
+    font-size: 0.775rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Checklist Items di Editor & Modal View */
+.ql-editor li[data-list="checked"],
+.ql-editor li[data-list="unchecked"],
+.note-view-content li[data-list="checked"],
+.note-view-content li[data-list="unchecked"] {
+    list-style: none !important;
+    position: relative;
+    padding-left: 1.85rem;
+    margin: 0.35rem 0;
+    cursor: pointer;
+    line-height: 1.6;
+    transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.ql-editor li[data-list="checked"] > .ql-ui,
+.ql-editor li[data-list="unchecked"] > .ql-ui,
+.note-view-content li[data-list="checked"] > .ql-ui,
+.note-view-content li[data-list="unchecked"] > .ql-ui {
+    font-size: 1.25rem;
+    line-height: 1;
+    position: absolute;
+    left: 0;
+    top: 0.2rem;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.note-view-content li[data-list="checked"] > .ql-ui:hover,
+.note-view-content li[data-list="unchecked"] > .ql-ui:hover {
+    transform: scale(1.2);
+}
+
+.ql-editor li[data-list="checked"],
+.note-view-content li[data-list="checked"] {
+    text-decoration: line-through;
+    color: var(--text-light);
+    opacity: 0.68;
+}
+
+.ql-editor li[data-list="checked"] > .ql-ui,
+.note-view-content li[data-list="checked"] > .ql-ui {
+    color: var(--primary) !important;
+    text-decoration: none !important;
+}
+
+.ql-editor li[data-list="unchecked"] > .ql-ui,
+.note-view-content li[data-list="unchecked"] > .ql-ui {
+    color: var(--text-muted);
+}
+
+/* Fallback ikon checklist jika .ql-ui tidak ada (misal HTML tersimpan bersih) */
+.note-view-content li[data-list="checked"]:not(:has(.ql-ui))::before {
+    content: '\2611';
+    font-size: 1.25rem;
+    position: absolute;
+    left: 0;
+    top: 0.2rem;
+    line-height: 1;
+    color: var(--primary);
+}
+
+.note-view-content li[data-list="unchecked"]:not(:has(.ql-ui))::before {
+    content: '\2610';
+    font-size: 1.25rem;
+    position: absolute;
+    left: 0;
+    top: 0.2rem;
+    line-height: 1;
+    color: var(--text-muted);
+}
+
+/* Quill Toolbar List Check Icon Styling di Dark Mode */
+body.dark-mode .ql-snow .ql-stroke {
+    stroke: var(--text-muted);
+}
+body.dark-mode .ql-snow .ql-fill {
+    fill: var(--text-muted);
+}
+body.dark-mode .ql-snow button:hover .ql-stroke,
+body.dark-mode .ql-snow button.ql-active .ql-stroke {
+    stroke: var(--primary);
+}
+body.dark-mode .ql-snow button:hover .ql-fill,
+body.dark-mode .ql-snow button.ql-active .ql-fill {
+    fill: var(--primary);
+}
 

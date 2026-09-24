@@ -17,7 +17,7 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
     
     <!-- Tailwind CSS & DaisyUI CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -245,6 +245,19 @@
                     
                     <input type="text" id="noteTags" class="form-input" placeholder="Tags (pisahkan koma)">
                     
+                    <!-- Mode Switcher: Catatan Teks vs Mode Checklist -->
+                    <div class="note-type-toggle-container form-grid-span-2">
+                        <div class="note-type-toggle">
+                            <button type="button" id="addTypeTextBtn" class="type-toggle-btn active">
+                                <i class="fas fa-align-left"></i> Catatan Teks
+                            </button>
+                            <button type="button" id="addTypeChecklistBtn" class="type-toggle-btn">
+                                <i class="fas fa-tasks"></i> Mode Checklist
+                            </button>
+                        </div>
+                        <span class="note-type-hint" id="addTypeHint">Tulis bebas dengan format teks</span>
+                    </div>
+
                     <!-- Toolbar Container Terpisah (Baris 3 Wireframe) -->
                     <div id="addToolbarContainer" class="editor-toolbar-container form-grid-span-2"></div>
 
@@ -284,6 +297,19 @@
                     
                     <input type="text" id="editNoteTags" class="form-input" placeholder="Tags (pisahkan koma)">
                     
+                    <!-- Mode Switcher: Catatan Teks vs Mode Checklist -->
+                    <div class="note-type-toggle-container form-grid-span-2">
+                        <div class="note-type-toggle">
+                            <button type="button" id="editTypeTextBtn" class="type-toggle-btn active">
+                                <i class="fas fa-align-left"></i> Catatan Teks
+                            </button>
+                            <button type="button" id="editTypeChecklistBtn" class="type-toggle-btn">
+                                <i class="fas fa-tasks"></i> Mode Checklist
+                            </button>
+                        </div>
+                        <span class="note-type-hint" id="editTypeHint">Tulis bebas dengan format teks</span>
+                    </div>
+
                     <!-- Toolbar Container Terpisah (Baris 3 Wireframe) -->
                     <div id="editToolbarContainer" class="editor-toolbar-container form-grid-span-2"></div>
 
@@ -383,7 +409,21 @@
             </div>
             
             <div class="modal-body" style="padding-top: 1rem;">
-                <div id="viewNoteContent" class="note-view-content"></div>
+                <!-- Checklist Progress Bar (Otomatis muncul jika catatan punya checklist) -->
+                <div id="viewChecklistContainer" class="view-checklist-progress-box hidden">
+                    <div class="checklist-progress-header">
+                        <span class="checklist-progress-label">
+                            <i class="fas fa-tasks"></i> Progress Checklist
+                        </span>
+                        <span id="viewChecklistCount" class="checklist-progress-count">0/0 Selesai (0%)</span>
+                    </div>
+                    <div class="checklist-progress-bar">
+                        <div id="viewChecklistFill" class="checklist-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <p class="checklist-tip"><i class="fas fa-info-circle"></i> Klik kotak centang untuk menandai selesai langsung dari sini</p>
+                </div>
+
+                <div id="viewNoteContent" class="note-view-content ql-snow ql-editor"></div>
                 <div id="productLinkContainer" class="hidden" style="margin-top: 1rem;">
                     <p>Tautan Produk</p>
                     <a id="viewProductLink" href="#" target="_blank"></a>
@@ -472,7 +512,7 @@
         </div>
     </div>
     
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <script src="script/main.js" type="module"></script>
     

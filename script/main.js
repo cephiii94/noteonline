@@ -237,8 +237,35 @@ function initializeEventListeners() {
         
         if (action === 'view') {
             currentViewNoteId = id;
-            UI.showViewModal(note);
+            UI.showViewModal(note, handleChecklistToggle);
             updateNavState();
+        }
+    };
+
+    // Auto-save toggle checklist saat diklik langsung di view modal
+    const handleChecklistToggle = async (note, newHtml, newPlainText) => {
+        try {
+            await FirebaseService.updateNoteInFirestore(userId, note.id, {
+                content: newHtml,
+                plainText: newPlainText
+            });
+
+            // Update memori lokal
+            const noteInAll = allNotes.find(n => n.id === note.id);
+            if (noteInAll) {
+                noteInAll.content = newHtml;
+                noteInAll.plainText = newPlainText;
+            }
+            const noteInFiltered = currentFilteredNotes.find(n => n.id === note.id);
+            if (noteInFiltered) {
+                noteInFiltered.content = newHtml;
+                noteInFiltered.plainText = newPlainText;
+            }
+
+            // Re-render kartu catatan di latar belakang agar badge dan pratinjau diperbarui
+            UI.renderNotesList(currentFilteredNotes, currentFilter, 'notesList', isSelectMode, selectedNoteIds);
+        } catch (err) {
+            console.error("Gagal update status checklist:", err);
         }
     };
 
@@ -645,6 +672,44 @@ function initializeEventListeners() {
     Utils.safeAddListener('closeView', 'click', () => UI.closeModal('viewModal'));
     Utils.safeAddListener('viewBackBtn', 'click', () => UI.closeModal('viewModal'));
 
+    // --- Mode Switcher: Catatan Teks vs Mode Checklist (Add Modal) ---
+    const addTypeTextBtn = document.getElementById('addTypeTextBtn');
+    const addTypeChecklistBtn = document.getElementById('addTypeChecklistBtn');
+    const addTypeHint = document.getElementById('addTypeHint');
+    if (addTypeTextBtn && addTypeChecklistBtn) {
+        addTypeTextBtn.addEventListener('click', () => {
+            addTypeTextBtn.classList.add('active');
+            addTypeChecklistBtn.classList.remove('active');
+            if (addTypeHint) addTypeHint.textContent = 'Tulis bebas dengan format teks';
+            UI.setEditorChecklistMode('add', false);
+        });
+        addTypeChecklistBtn.addEventListener('click', () => {
+            addTypeChecklistBtn.classList.add('active');
+            addTypeTextBtn.classList.remove('active');
+            if (addTypeHint) addTypeHint.textContent = 'Mode Checklist: Setiap baris otomatis menjadi daftar tugas centang';
+            UI.setEditorChecklistMode('add', true);
+        });
+    }
+
+    // --- Mode Switcher: Catatan Teks vs Mode Checklist (Edit Modal) ---
+    const editTypeTextBtn = document.getElementById('editTypeTextBtn');
+    const editTypeChecklistBtn = document.getElementById('editTypeChecklistBtn');
+    const editTypeHint = document.getElementById('editTypeHint');
+    if (editTypeTextBtn && editTypeChecklistBtn) {
+        editTypeTextBtn.addEventListener('click', () => {
+            editTypeTextBtn.classList.add('active');
+            editTypeChecklistBtn.classList.remove('active');
+            if (editTypeHint) editTypeHint.textContent = 'Tulis bebas dengan format teks';
+            UI.setEditorChecklistMode('edit', false);
+        });
+        editTypeChecklistBtn.addEventListener('click', () => {
+            editTypeChecklistBtn.classList.add('active');
+            editTypeTextBtn.classList.remove('active');
+            if (editTypeHint) editTypeHint.textContent = 'Mode Checklist: Setiap baris otomatis menjadi daftar tugas centang';
+            UI.setEditorChecklistMode('edit', true);
+        });
+    }
+
     // Menu Dropdown & Klik Luar
     Utils.safeAddListener('viewMenuBtn', 'click', (e) => {
         e.stopPropagation();
@@ -703,7 +768,7 @@ function initializeEventListeners() {
         if (targetIndex >= 0 && targetIndex < currentFilteredNotes.length) {
             const targetNote = currentFilteredNotes[targetIndex];
             currentViewNoteId = targetNote.id;
-            UI.showViewModal(targetNote);
+            UI.showViewModal(targetNote, handleChecklistToggle);
             updateNavState();
         }
     }
