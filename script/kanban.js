@@ -1,17 +1,11 @@
 // script/kanban.js
-
-// Naik satu level (../) untuk akses firebase-config di root
-import { auth, db } from '../firebase-config.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+import { auth } from '../firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import * as FirebaseService from './firebase-service.js';
 import * as Utils from './utils.js'; 
 import { initAllCustomDropdowns } from './custom-select.js';
 
-// Initialize Custom Dropdowns
-document.addEventListener('DOMContentLoaded', () => {
-    initAllCustomDropdowns();
-});
+// Initialize Custom Dropdowns (Sekali saat load)
 initAllCustomDropdowns();
 
 // --- Integrasi Sidebar & Tema ---
@@ -34,7 +28,6 @@ Utils.safeAddListener('themeToggle', 'click', () => {
 
 // --- LOGIKA KANBAN ---
 let userId = null;
-let kanbanCollectionRef;
 let isAuthReady = false;
 
 const els = {
@@ -55,8 +48,7 @@ const els = {
 
 let allTasks = [];
 
-// --- FITUR BARU: AUTO SCROLL (Matematika Penggeser Layar) ---
-// Fungsi ini akan dipanggil saat drag (Mouse & Touch)
+// --- FITUR AUTO SCROLL (Penggeser Layar saat Drag) ---
 function autoScrollBoard(clientX) {
     if (!els.board) return;
     
@@ -64,12 +56,9 @@ function autoScrollBoard(clientX) {
     const buffer = 80; // Jarak 80px dari pinggir untuk mulai scroll
     const speed = 15;  // Kecepatan geser
 
-    // Jika mouse/jari ada di sisi KANAN layar -> Geser Kanan
     if (clientX > right - buffer) {
         els.board.scrollLeft += speed;
-    }
-    // Jika mouse/jari ada di sisi KIRI layar -> Geser Kiri
-    else if (clientX < left + buffer) {
+    } else if (clientX < left + buffer) {
         els.board.scrollLeft -= speed;
     }
 }
@@ -81,7 +70,6 @@ function initFirebase() {
             if(els.userEmailDisplay) els.userEmailDisplay.textContent = user.email;
             if(els.userNameDisplay) els.userNameDisplay.textContent = user.displayName || user.email.split('@')[0];
             
-            kanbanCollectionRef = collection(db, `kanban/users/${userId}`); 
             isAuthReady = true;
             if(els.loading) els.loading.style.display = 'none';
             if(els.board) els.board.style.display = 'flex'; // Flex row (samping)
@@ -95,13 +83,13 @@ function initFirebase() {
 
 if(els.logoutBtn) {
     els.logoutBtn.addEventListener('click', () => {
-        signOut(auth).then(() => window.location.href = 'login.html');
+        FirebaseService.logoutUser().then(() => window.location.href = 'login.html');
     });
 }
 
 function listenForTasks() {
-    onSnapshot(kanbanCollectionRef, (snapshot) => {
-        allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    FirebaseService.subscribeToKanbanTasks(userId, (tasks) => {
+        allTasks = tasks;
         render();
     }, (error) => console.error("Error fetching tasks:", error));
 }
@@ -126,7 +114,7 @@ function render(){
         title.contentEditable = 'true';
         title.innerText = task.title;
         title.addEventListener('input', () => {
-            updateDoc(doc(db, kanbanCollectionRef.path, task.id), { title: title.innerText, updatedAt: new Date() });
+            FirebaseService.updateKanbanTask(userId, task.id, { title: title.innerText });
         });
         
         const actions = document.createElement('div');
@@ -147,7 +135,7 @@ function render(){
         moveSelect.addEventListener('change', (e) => {
             const newCol = e.target.value;
             if(newCol) {
-                updateDoc(doc(db, kanbanCollectionRef.path, task.id), { column: newCol, updatedAt: new Date() });
+                FirebaseService.updateKanbanTask(userId, task.id, { column: newCol });
             }
         });
         actions.appendChild(moveSelect);
@@ -157,7 +145,7 @@ function render(){
             doneBtn.className = 'icon-btn success';
             doneBtn.innerHTML = '<i class="fas fa-check"></i>';
             doneBtn.addEventListener('click', () => {
-                updateDoc(doc(db, kanbanCollectionRef.path, task.id), { column: 'done', updatedAt: new Date() });
+                FirebaseService.updateKanbanTask(userId, task.id, { column: 'done' });
             });
             actions.appendChild(doneBtn);
         }
@@ -174,7 +162,7 @@ function render(){
                 type: 'danger'
             }).then(confirmed => {
                 if (confirmed) {
-                    deleteDoc(doc(db, kanbanCollectionRef.path, task.id));
+                    FirebaseService.deleteKanbanTask(userId, task.id);
                     Utils.showToast('Tugas berhasil dihapus', 'success');
                 }
             });
@@ -188,7 +176,7 @@ function render(){
         note.placeholder = 'Catatan...';
         note.value = task.note || '';
         note.addEventListener('change', () => { 
-            updateDoc(doc(db, kanbanCollectionRef.path, task.id), { note: note.value, updatedAt: new Date() });
+            FirebaseService.updateKanbanTask(userId, task.id, { note: note.value });
         });
 
         card.append(h, note);
@@ -199,9 +187,7 @@ function render(){
         });
 
         // --- DRAG (DESKTOP) UNTUK AUTO SCROLL ---
-        // Saat kita drag card, kita cek posisi mouse untuk scroll
         card.addEventListener('drag', (e) => {
-            // e.clientX bernilai 0 saat drag selesai, jadi kita cek if > 0
             if(e.clientX > 0) autoScrollBoard(e.clientX);
         });
 
@@ -214,11 +200,10 @@ function render(){
 
 // --- LOGIC DROPZONE (DESKTOP) ---
 document.querySelectorAll('.dropzone').forEach(zone => {
-    // Kita tambahkan autoScroll juga di sini biar makin responsif
     zone.addEventListener('dragover', e => { 
         e.preventDefault(); 
         zone.classList.add('dragover');
-        autoScrollBoard(e.clientX); // <-- Auto Scroll saat hover di zone lain
+        autoScrollBoard(e.clientX);
     });
     
     zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
@@ -229,7 +214,7 @@ document.querySelectorAll('.dropzone').forEach(zone => {
         const id = e.dataTransfer.getData('text/plain');
         const t = allTasks.find(x => x.id === id);
         if (t && isAuthReady) { 
-            updateDoc(doc(db, kanbanCollectionRef.path, t.id), { column: zone.dataset.col, updatedAt: new Date() });
+            FirebaseService.updateKanbanTask(userId, t.id, { column: zone.dataset.col });
         }
     });
 });
@@ -256,13 +241,9 @@ function setupTouchDrag(card, task){
         e.preventDefault();
         const t = e.touches[0];
         
-        // 1. Gerakkan Ghost
         moveGhost(t.clientX, t.clientY);
-        
-        // 2. Auto Scroll (PENTING BUAT HP)
         autoScrollBoard(t.clientX); 
         
-        // 3. Highlight Zone
         const el = document.elementFromPoint(t.clientX, t.clientY);
         const zone = el ? el.closest('.dropzone') : null;
         if(currentZone && currentZone !== zone) currentZone.classList.remove('dragover');
@@ -275,7 +256,7 @@ function setupTouchDrag(card, task){
         if(ghost) ghost.remove(); ghost = null;
         if(currentZone) {
             currentZone.classList.remove('dragover');
-            updateDoc(doc(db, kanbanCollectionRef.path, task.id), { column: currentZone.dataset.col, updatedAt: new Date() });
+            FirebaseService.updateKanbanTask(userId, task.id, { column: currentZone.dataset.col });
             currentZone = null;
         }
     };
@@ -293,8 +274,10 @@ if(els.addBtn) {
         const title = els.newTitle.value.trim();
         if(!title) return els.newTitle.focus();
         if (isAuthReady) {
-            addDoc(kanbanCollectionRef, {
-                title: title, note: '', column: els.newColumn.value, createdAt: new Date()
+            FirebaseService.addKanbanTask(userId, {
+                title: title,
+                note: '',
+                column: els.newColumn.value
             });
         }
         els.newTitle.value = '';
@@ -316,15 +299,17 @@ if(els.exportBtn) {
 
 if(els.importBtn) els.importBtn.addEventListener('click', ()=> els.importFile.click());
 if(els.importFile) {
-    els.importFile.addEventListener('change', e => {
+    els.importFile.addEventListener('change', async e => {
         const f = e.target.files[0];
         if (!f) return;
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = async () => {
             try {
                 const arr = JSON.parse(String(reader.result));
                 if (Array.isArray(arr) && isAuthReady) {
-                    arr.forEach(({id, ...data}) => addDoc(kanbanCollectionRef, data));
+                    for (const {id, ...data} of arr) {
+                        await FirebaseService.addKanbanTask(userId, data);
+                    }
                     Utils.showToast('Import Berhasil!', 'success');
                 }
             } catch(e) { 

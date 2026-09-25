@@ -1,13 +1,14 @@
 // script/firebase-service.js
 import { db, auth } from '../firebase-config.js';
 import { 
-    collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, where, orderBy 
+    collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 let notesListenerUnsubscribe = null;
+let kanbanListenerUnsubscribe = null;
 
-// --- CRUD Operations (Fungsi Database) ---
+// --- CRUD Operations (Catatan) ---
 
 export async function addNoteToFirestore(userId, noteData) {
     const notesRef = collection(db, 'users', userId, 'notes');
@@ -35,7 +36,7 @@ export async function deleteNoteFromFirestore(userId, noteId) {
 
 export async function togglePinNote(userId, noteId, currentStatus) {
     const noteRef = doc(db, 'users', userId, 'notes', noteId);
-    // Saat di-pin, update juga tanggalnya biar triggernya responsif
+    // Saat di-pin, update juga tanggalnya biar responsif
     return await updateDoc(noteRef, { 
         isPinned: !currentStatus,
         updatedAt: new Date() 
@@ -56,33 +57,62 @@ export async function logoutUser() {
     return await signOut(auth);
 }
 
-// --- Realtime Listener (Penyebab Masalah Tadi) ---
+// --- Realtime Listener (Catatan) ---
 
-export function subscribeToNotes(userId, filterType, category, onUpdateCallback, onErrorCallback) {
-    // Bersihkan listener lama biar gak numpuk
+export function subscribeToNotes(userId, onUpdateCallback, onErrorCallback) {
+    // Bersihkan listener lama biar tidak menumpuk
     if (notesListenerUnsubscribe) {
         notesListenerUnsubscribe();
     }
 
     const notesRef = collection(db, 'users', userId, 'notes');
-    let q;
+    const q = query(notesRef);
 
-    // --- SOLUSI CATATAN HANTU ---
-    // Kita minta SEMUA data, diurutkan tanggal update terbaru.
-    // Kita TIDAK memfilter "isArchived" di sini, supaya catatan lama (yang gak punya field isArchived) ikut terambil.
-    try {
-        q = query(notesRef);
-    } catch (e) {
-        // Fallback kalau Index belum siap
-        console.warn("Index Firestore belum siap, mengambil data tanpa sorting server.");
-        q = query(notesRef);
-    }
-
-    // Pasang Telinga (Listener)
+    // Pasang listener real-time
     notesListenerUnsubscribe = onSnapshot(q, (snapshot) => {
         const notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         onUpdateCallback(notes); // Kirim data mentah ke Main.js
     }, (error) => {
         if (onErrorCallback) onErrorCallback(error);
     });
+    return notesListenerUnsubscribe;
+}
+
+// --- CRUD & Realtime Listener (Kanban Tasks) ---
+
+export function subscribeToKanbanTasks(userId, onUpdateCallback, onErrorCallback) {
+    if (kanbanListenerUnsubscribe) {
+        kanbanListenerUnsubscribe();
+    }
+
+    const kanbanRef = collection(db, 'kanban', 'users', userId);
+    kanbanListenerUnsubscribe = onSnapshot(kanbanRef, (snapshot) => {
+        const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        onUpdateCallback(tasks);
+    }, (error) => {
+        if (onErrorCallback) onErrorCallback(error);
+    });
+    return kanbanListenerUnsubscribe;
+}
+
+export async function addKanbanTask(userId, taskData) {
+    const kanbanRef = collection(db, 'kanban', 'users', userId);
+    return await addDoc(kanbanRef, {
+        ...taskData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+    });
+}
+
+export async function updateKanbanTask(userId, taskId, updateData) {
+    const taskRef = doc(db, 'kanban', 'users', userId, taskId);
+    return await updateDoc(taskRef, {
+        ...updateData,
+        updatedAt: new Date()
+    });
+}
+
+export async function deleteKanbanTask(userId, taskId) {
+    const taskRef = doc(db, 'kanban', 'users', userId, taskId);
+    return await deleteDoc(taskRef);
 }

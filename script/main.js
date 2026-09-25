@@ -38,8 +38,7 @@ onAuthStateChanged(auth, (user) => {
 
 function refreshNotesData() {
     // Panggil Service Firebase (yang sekarang mengambil SEMUA data)
-    FirebaseService.subscribeToNotes(userId, currentFilter, currentCategory, (notes) => {
-        // console.log("🔥 Data masuk:", notes.length); // Uncomment untuk debug
+    FirebaseService.subscribeToNotes(userId, (notes) => {
         allNotes = notes; // Simpan data mentah
         filterAndRender(); // Lanjut ke penyaringan
     }, (error) => {

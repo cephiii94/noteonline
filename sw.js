@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'notonlen-v3'; // Naikkan versi agar cache lama dibersihkan
+const CACHE_NAME = 'notonlen-v4'; // Naikkan versi agar cache lama dibersihkan
 
 const LOCAL_ASSETS = [
   '/',
@@ -14,6 +14,7 @@ const LOCAL_ASSETS = [
   '/script/main.js',
   '/script/utils.js',
   '/script/ui-handler.js',
+  '/script/custom-select.js',
   '/script/firebase-service.js',
   '/script/kanban.js',
   '/firebase-config.js',
@@ -27,8 +28,8 @@ const LOCAL_ASSETS = [
 const EXTERNAL_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://cdn.quilljs.com/1.3.6/quill.snow.css',
-  'https://cdn.quilljs.com/1.3.6/quill.js'
+  'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css',
+  'https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js'
 ];
 
 // 1. Install Service Worker
