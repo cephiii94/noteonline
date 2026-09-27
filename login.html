@@ -154,6 +154,7 @@
 
             signInWithEmailAndPassword(auth, email, password)
                 .catch((error) => {
+                    console.error("Login error:", error);
                     errorMessage.textContent = getFriendlyErrorMessage(error.code);
                     btn.innerText = originalText;
                     btn.disabled = false;
@@ -175,6 +176,7 @@
 
             createUserWithEmailAndPassword(auth, email, password)
                 .catch((error) => {
+                    console.error("Register error:", error);
                     registerErrorMessage.textContent = getFriendlyErrorMessage(error.code);
                     btn.innerText = originalText;
                     btn.disabled = false;
@@ -186,7 +188,8 @@
             const provider = new GoogleAuthProvider();
             signInWithPopup(auth, provider)
                 .catch((error) => {
-                    errorMessage.textContent = "Gagal masuk dengan Google.";
+                    console.error("Google Sign-in error:", error);
+                    errorMessage.textContent = getFriendlyErrorMessage(error.code) || "Gagal masuk dengan Google.";
                 });
         });
 
@@ -194,9 +197,12 @@
             switch (errorCode) {
                 case 'auth/invalid-email': return 'Format email tidak valid.';
                 case 'auth/user-not-found':
-                case 'auth/wrong-password': return 'Email atau password salah.';
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential': return 'Email atau password salah / akun tidak ditemukan.';
                 case 'auth/email-already-in-use': return 'Email ini sudah terdaftar.';
                 case 'auth/weak-password': return 'Password terlalu lemah, gunakan minimal 6 karakter.';
+                case 'auth/operation-not-allowed': return 'Metode autentikasi ini belum diaktifkan di Firebase Console.';
+                case 'auth/popup-closed-by-user': return 'Pop-up login Google ditutup.';
                 default: return 'Terjadi kesalahan (' + errorCode + ').';
             }
         }

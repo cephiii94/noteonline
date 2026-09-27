@@ -75,8 +75,8 @@ export function linkifyHTML(html) {
         a.setAttribute('rel', 'noopener noreferrer');
     });
 
-    // 2. Deteksi teks URL polos (http://, https://, www.) di luar tag <a>
-    const urlRegex = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+    // 2. Deteksi teks URL polos (http://, https://, www., serta domain seperti facebook.com, gog.cc, dll) di luar tag <a>
+    const urlRegex = /(?:https?:\/\/|www\.)[^\s<]+|\b(?<!@)[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.(?:com|cc|net|org|io|id|co\.id|go\.id|ac\.id|or\.id|biz|info|me|app|dev|xyz|tech|online|store|site|link|top|tv|vip|live|shop|co|us|uk|ca|de|jp|fr|au|in|cn|[a-z]{2,8})(?:\/[^\s<]*)?/gi;
 
     function processTextNode(node) {
         if (node.nodeType === Node.TEXT_NODE) {
