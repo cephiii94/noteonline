@@ -1,5 +1,5 @@
 // sw.js
-const CACHE_NAME = 'notonlen-v4'; // Naikkan versi agar cache lama dibersihkan
+const CACHE_NAME = 'notonlen-v5'; // Versi cache otomatis terbarui
 
 const LOCAL_ASSETS = [
   '/',
@@ -17,6 +17,7 @@ const LOCAL_ASSETS = [
   '/script/custom-select.js',
   '/script/firebase-service.js',
   '/script/kanban.js',
+  '/script/sw-register.js',
   '/firebase-config.js',
   
   // PWA Assets
@@ -36,15 +37,12 @@ const EXTERNAL_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      console.log('SW: Caching local assets');
-      // Cache aset lokal utama terlebih dahulu (wajib berhasil)
+      console.log('SW: Caching assets');
       await cache.addAll(LOCAL_ASSETS);
-      
-      // Cache aset CDN eksternal secara bertahap (tidak menggagalkan instalasi SW jika salah satu CDN timeout)
       await Promise.allSettled(EXTERNAL_ASSETS.map(url => cache.add(url)));
     })
   );
-  self.skipWaiting(); // Paksa SW baru langsung aktif
+  self.skipWaiting(); // Paksa SW baru langsung masuk status aktif
 });
 
 // 2. Activate (Hapus cache lama)
@@ -54,7 +52,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log('SW: Clearing old cache');
+            console.log('SW: Clearing old cache:', cache);
             return caches.delete(cache);
           }
         })
@@ -64,27 +62,67 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. Fetch (Strategi: Cache First, Network Fallback)
+// 3. Listener pesan dari client (misal untuk skipWaiting manual)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// 4. Fetch Strategy Optimized (Network-First untuk HTML Navigasi, Stale-While-Revalidate untuk Aset Statis)
 self.addEventListener('fetch', (event) => {
-  // Abaikan request ke Firestore/Firebase (biar SDK Firebase yang urus)
-  if (event.request.url.includes('firestore.googleapis.com') || 
-      event.request.url.includes('firebase')) {
-    return; 
+  // Abaikan request ke Firestore/Firebase SDK & Chrome Extensions
+  const url = event.request.url;
+  if (url.includes('firestore.googleapis.com') || 
+      url.includes('firebase') || 
+      url.startsWith('chrome-extension://')) {
+    return;
   }
 
+  // A. NAVIGASI HALAMAN (HTML): Network-First
+  // Ambil halaman terbaru dari jaringan saat online. Jika offline, baru pakai cache.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Offline fallback
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match('/index.html');
+          });
+        })
+    );
+    return;
+  }
+
+  // B. ASET STATIS (JS, CSS, Images, Fonts): Stale-While-Revalidate
+  // Tampilkan versi cache secara instan, lalu perbarui cache di latar belakang untuk kunjungan berikutnya.
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Kalau ada di cache, pakai cache
-      if (response) {
-        return response;
-      }
-      // Kalau gak ada, ambil dari internet
-      return fetch(event.request).catch(() => {
-        // Kalau internet mati dan file gak ada di cache (misal halaman baru)
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
+    caches.match(event.request).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && event.request.method === 'GET') {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        })
+        .catch((err) => {
+          console.warn('SW: Network fetch failed for asset:', event.request.url);
+        });
+
+      // Kembalikan cache secepatnya jika ada, atau tunggu network jika tidak ada cache
+      return cachedResponse || fetchPromise;
     })
   );
 });

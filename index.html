@@ -515,18 +515,6 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
     <script src="script/main.js" type="module"></script>
-    
-    <script>
-    if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-        try {
-        const reg = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker berhasil didaftarkan: ', reg);
-        } catch (err) {
-        console.warn('Gagal mendaftarkan Service Worker:', err);
-        }
-    });
-    }
-</script>
+    <script src="script/sw-register.js" type="module"></script>
 </body>
 </html>

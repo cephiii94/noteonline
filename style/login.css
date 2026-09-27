@@ -252,3 +252,127 @@ body.login-body {
         font-size: 1.25rem;
     }
 }
+
+/* =========================================
+   PWA AUTO-UPDATE TOAST NOTIFICATION
+   ========================================= */
+.pwa-update-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(120%);
+    z-index: 9999;
+    width: calc(100% - 2rem);
+    max-width: 480px;
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: none;
+}
+
+.pwa-update-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.pwa-toast-inner {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.pwa-toast-info {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.pwa-toast-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.pwa-toast-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.pwa-toast-title {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.pwa-toast-desc {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.pwa-toast-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.pwa-toast-reload-btn {
+    background-color: var(--primary);
+    color: #ffffff;
+    font-size: 0.825rem;
+    font-weight: 600;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.625rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pwa-toast-reload-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.pwa-toast-close-btn {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.pwa-toast-close-btn:hover {
+    background-color: var(--border);
+    color: var(--text-main);
+}
